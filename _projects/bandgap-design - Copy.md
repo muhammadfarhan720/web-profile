@@ -10,8 +10,9 @@ order: 2
 
 Implementation on VC-707 FPGA :
 
-- **LUT resource**: 3488
-- **FF count**: 3029
-- **Static Power Consumption**: 108 mW
-- **Dynamic Power Consumption**: 216 mw
-- **Maximum Operating Frequency**: 118 MHz
+- **LUT resource**: 13314
+- **FF count**: 10750
+- **BRAM count** : 6
+- **Static Power Consumption**: 262 mW
+- **Dynamic Power Consumption**: 256 mw
+
