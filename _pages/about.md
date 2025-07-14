@@ -1,6 +1,6 @@
 ---
 permalink: /
-title: "Hello there, I'm Salekin!"
+title: "Hello there, I'm Farhan !"
 excerpt: "About me"
 author_profile: true
 redirect_from: 
@@ -19,7 +19,7 @@ redirect_from:
 
 
 
-🎓 I'm a second-year PhD student at Virginia Tech.
+🎓 I'm a Third-year PhD student at Virginia Tech.
 
 ⚡ My research interests include Analog Mixed-Signal Integrated Circuits, Neuromorphic Computing, AI Hardware Accelerators, and In-Memory Computing.
 
