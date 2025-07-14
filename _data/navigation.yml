@@ -6,10 +6,10 @@
 
 main:
   - title: "CV"
-    url: /files/Resume_Shirazush_Salekin_Chowdhury.pdf
+    url: # /files/Resume_Shirazush_Salekin_Chowdhury.pdf
 
   - title: "Publications"
-    url: https://scholar.google.com/citations?user=7XNBptcAAAAJ&hl=en&oi=ao&inst=13410158990364976897
+    url: https://scholar.google.com/citations?user=tYhVbtrZsxwC&hl=en&oi=ao
 
   - title: "Projects"
     url: /projects/    
