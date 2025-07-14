@@ -1,7 +1,7 @@
 ---
-title: "Bandgap Design for Voltage Reference in Cadence"
-description: "Designed a bandgap voltage reference circuit with low temperature coefficient."
-github: "https://github.com/salekinchowdhury/Bandgap-Reference-Circuit-in-Cadence"
+title: "Neuromorphic SNN Accelerator design with biologically inspired On-Chip training for Edge-AI using Xilinx Vivado"
+description: "This design presents an on-chip spiking neural network (SNN) neuromorphic accelerator design deploying biologically inspired training for low power Edge-AI classification tasks."
+github: "https://github.com/muhammadfarhan720/OnChip_SNN_Accelerator_Edge"
 layout: single
 order: 2
 ---
