@@ -8,11 +8,11 @@
 
 # Basic Site Settings
 locale                   : "en-US"
-title                    : "Shirazush Salekin's Homepage"
+title                    : "Farhan's webpage"
 title_separator          : "-"
-name                     : &name "Shirazush Salekin Chowdhury"
+name                     : &name "Muhammad Farhan Azmine"
 description              : &description "personal description"
-url                      : "https://salekinchowdhury.github.io/profile"
+url                      : "https://muhammadfarhan720.github.io/web-profile/"
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
 repository               : "https://github.com/salekinchowdhury/profile"
 
@@ -21,29 +21,31 @@ repository               : "https://github.com/salekinchowdhury/profile"
 #               Additional customization can be done by editing /_includes/author-profile.html
 author:
   # Biographic information
-  avatar           : "Salekin_Github_dp.jpg"
-  name             : "Shirazush Salekin Chowdhury"
-  pronouns         : "he/him"  
-  bio              : "I am a second-year Ph.D. student in Electrical Engineering at Virginia Tech with more than five years of experience in Analog Mixed-Signal IC design and AI hardware accelerators. I specialize in designing energy-efficient circuits and hardware, with expertise in Python, Verilog, and industry-standard EDA tools. My passion lies in solving complex engineering challenges and driving innovation in advanced technologies."
-  location         : "Blacksburg, VA, United States"
+  avatar           : "github_photo_2.jpg"
+  name             : "Muhammad Farhan Azmine"
+  pronouns         : #"he/him"  
+  bio              : "I am a third year PhD student with Computer Engineering major at Virginia Tech. I have more than 5 years of experience in developing complex RTL designs, IP subsystem integration and Verification. My research includes developing energy efficient hardware friendly machine learning algorithms using Python/C++ and designing/optimizing digital chips that can deploy them for Edge AI applications"
+  location         : "Alexandria, VA, USA"
   employer         : "Virginia Tech"
   uri              : # URL
-  email            : "salekin@vt.edu" 
+  email            : "muhammadfarhan@vt.edu" 
 
-  # Academic websites
+ # Academic websites
+  academia         : # URL
   arxiv            : # URL - Update with the correct link to your profile
-  googlescholar    : "https://scholar.google.com/citations?user=7XNBptcAAAAJ&hl=en&oi=ao&inst=13410158990364976897"
+  googlescholar    : "https://scholar.google.com/citations?user=tYhVbtrZsxwC&hl=en&oi=ao"
   impactstory      : # URL
-  orcid            : "https://orcid.org/0009-0006-0614-2423"
+  orcid            : #"http://orcid.org/yourorcidurl"
   semantic         : # URL
-  pubmed           : # URL
-  researchgate     : "https://www.researchgate.net/profile/Shirazush-Salekin-Chowdhury"
+  pubmed           : # "https://www.ncbi.nlm.nih.gov/pubmed/?term=john+snow"
+  researchgate     : # URL
+  scopus           : # URL
 
   # Repositories and software development
   bitbucket        : # Username - Update with your username on the site
   codepen          : # Username
   dribbble         : # Username
-  github           : "salekinchowdhury"
+  github           : "muhammadfarhan720"
   kaggle           : # Username  
   stackoverflow    : # User number or user number and name (i.e., use "1" or "1/jeff-atwood")    
   # Social media
@@ -56,7 +58,7 @@ author:
   keybase          : # Username
   instagram        : # Username
   lastfm           : # Username
-  linkedin         : "shirazush-salekin-chowdhury"
+  linkedin         : "muhammad-farhan-azmine-730200150/?_l=en_US"
   mastodon         : # URL
   medium           : # URL
   pinterest        : # Username
