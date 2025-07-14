@@ -1,0 +1,68 @@
+---
+layout: archive
+title: "VerilogA Day 04: Understanding Ports and Electrical Nodes"
+---
+
+<article class="blog-post">
+    <p>Posted on: October 27, 2024</p>
+    
+    <section>
+        <p>Welcome back to Day 4! Today, we’re leveling up by diving into <strong>ports and electrical nodes</strong> in Verilog-A. Think of these as the VIP access points and paths in your circuit—essentially, the “blood vessels” of your model, channeling energy to keep everything alive. Let’s jump in and see how these elements breathe life into your design!</p>
+    </section>
+
+    <h2>Step 1: Write Verilog-A Code for a Voltage Divider Circuit</h2>
+    <p>Today, our mission is to create a <strong>voltage divider circuit</strong> model in Verilog-A. Here’s what the code for this little marvel looks like:</p>
+
+    <pre><code>
+`include "disciplines.vams"     // Include fundamental constants
+`include "constants.vams"       // Include Verilog-A libraries
+
+module voltage_divider(vin, vout, gnd); // Declare a module with three ports: 'vin', 'vout', and 'gnd'
+  inout vin, vout, gnd;                  // Declare these ports as analog input/output ports
+  electrical vin, vout, gnd;             // Define these ports as electrical nodes
+
+  parameter real R1 = 1k;                // Declare a parameter for the resistance of the first resistor (R1 = 1kΩ)
+  parameter real R2 = 1k;                // Declare a parameter for the resistance of the second resistor (R2 = 1kΩ)
+
+  analog begin
+    I(vin, vout) <+ V(vin, vout) / R1;  // Current through the first resistor = voltage drop across R1 / R1
+    I(vout, gnd) <+ V(vout, gnd) / R2;  // Current through the second resistor = voltage drop across R2 / R2
+  end
+endmodule
+    </code></pre>
+
+    <p><strong>What's happening here?</strong></p>
+    <ul>
+        <li>This code models a good old <strong>voltage divider</strong> with two resistors, <code>R1</code> and <code>R2</code>.</li>
+        <li>The divider is powered by the input voltage (<code>vin</code>), gives you the output voltage at <code>vout</code>, and is grounded at <code>gnd</code>—the humble ground.</li>
+    </ul>
+
+    <h2>Step 2: Simulate the Voltage Divider in Cadence Virtuoso</h2>
+    <p>Now that you’ve crafted this voltage-divider masterpiece, let’s see it come to life in Cadence Virtuoso:</p>
+    <ol>
+        <li>Create a <strong>Verilog-A cell</strong> for the voltage divider named <code>voltage_divider</code>, and paste in the code above. Simple, right?</li>
+        <li>Set up a <strong>schematic</strong>:
+            <ul>
+                <li>Drop in a <strong>DC voltage source</strong> (we’ll go with 0.8V) at <code>vin</code>, either connect <code>vout</code> to "noConn" from "basic" library or keep it floating, and ground the <code>gnd</code>. Here’s how it should look:</li>
+            <img src="https://raw.githubusercontent.com/salekinchowdhury/profile/master/files/veriloga/veriloga_day04_port/div_ckt.png" alt="div ckt" style="width: 100%; max-width: 600px;">
+            </ul>
+        </li>
+        <li>Fire up the simulation in <strong>ADE Explorer</strong>:
+            <ul>
+                <li>In <strong>ADE Explorer</strong>, head over to <strong>Tool &gt; Calculator</strong> and pick <strong>vdc</strong>. Select the <code>vout</code> node to create an output voltage expression. Then click on <strong>Send buffer expression to the ADE outputs</strong> in the calculator to add it to your output list. Do the same for current by choosing <strong>idc</strong> from the calculator. Here’s a quick snapshot to guide you:</li>
+                <img src="https://raw.githubusercontent.com/salekinchowdhury/profile/master/files/veriloga/veriloga_day04_port/setup_maestro.png" alt="setup_maestro" style="width: 100%; max-width: 1000px;">
+            </ul>
+        </li>
+        <li>Now, hit <strong>Run</strong> to start the simulation and check out your results in <strong>ADE Explorer</strong>. As you’d expect, <code>vout</code> should show half of VDD (around 400 mV) if all went well. Success!</li>
+    </ol>
+
+    <h2>Summary for Day 4</h2>
+    <p>Today, we covered how to:
+        <ul>
+            <li>Set up and use <strong>ports and electrical nodes</strong> in Verilog-A.</li>
+            <li>Simulate a trusty <strong>voltage divider</strong> circuit in Cadence Virtuoso to confirm voltage division.</li>
+        </ul>
+    </p>
+    
+    <p>Coming up on <strong>Day 5</strong>, we’ll dive into analog behavior for more complex circuits. Keep up the great work, and get ready for the next step in mastering Verilog-A!</p>
+</article>

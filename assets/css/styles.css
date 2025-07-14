@@ -1,0 +1,22 @@
+.projects-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.project {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 16px;
+    width: calc(33.33% - 40px); /* Adjust based on how many columns you want */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.project h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.project-details {
+    margin-top: 10px;
+}

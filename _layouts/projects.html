@@ -1,0 +1,14 @@
+---
+layout: default
+title: "Projects"
+---
+<h2>My Projects</h2>
+<div class="project-list">
+    {% for project in site.portfolio %}
+        <div class="project">
+            <h3><a href="{{ project.url }}">{{ project.title }}</a></h3>
+            <p>{{ project.description }}</p>
+            <a href="{{ project.github_link }}">View on GitHub</a>
+        </div>
+    {% endfor %}
+</div>
