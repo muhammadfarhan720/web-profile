@@ -8,7 +8,10 @@ order: 2
 
 ## Project Overview
 
-- **Supply Voltage**: 1.8 V
-- **Temperature Coefficient**: < ±34.3 ppm/°C
-- **Power Consumption**: 365.6 µW
-- **Output Voltage**: 1.06 V
+Implementation on VC-707 FPGA :
+
+- **LUT resource**: 3488
+- **FF count**: 3029
+- **Static Power Consumption**: 108 mW
+- **Dynamic Power Consumption**: 216 mw
+- **Maximum Operating Frequency**: 118 MHz
