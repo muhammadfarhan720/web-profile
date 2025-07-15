@@ -9,7 +9,7 @@ order: 2
 ## Project Overview
 
 Implementation on VC-707 FPGA :
-
+-**HDL Coding** : VHDL + Verilog
 - **LUT resource**: 13314
 - **FF count**: 10750
 - **BRAM count** : 6
