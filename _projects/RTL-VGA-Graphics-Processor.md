@@ -12,7 +12,7 @@ order: 3
 - **Protocol**: VGA-ADC
 - **Frequency -VGA clock**: 25.175 MHz
 - **Pixel resolution {R,G,B}**: 24 bits 
-- **LUT resource**: 3488
-- **FF count**: 3029
-- **Static Power Consumption**: 108 mW
-- **Dynamic Power Consumption**: 216 mw
+- **Logic resource (ALM)**: 214
+- **Distributed FF **: 31
+- **Total BRAM size (Bytes)**: 38,400
+- **Top module pins (I/O)**: 31 
