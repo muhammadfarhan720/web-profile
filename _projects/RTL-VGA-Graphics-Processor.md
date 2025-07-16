@@ -11,7 +11,7 @@ order: 3
 - **HDL coding**: SystemVerilog
 - **Protocol**: VGA-ADC
 - **Frequency -VGA clock**: 25.175 MHz
-- **Pixel resolution**: 24 bits {R,G,B}
+- **Pixel resolution {R,G,B}**: 24 bits 
 - **LUT resource**: 3488
 - **FF count**: 3029
 - **Static Power Consumption**: 108 mW
