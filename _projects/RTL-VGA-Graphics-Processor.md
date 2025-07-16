@@ -13,6 +13,6 @@ order: 3
 - **Frequency -VGA clock**: 25.175 MHz
 - **Pixel resolution {R,G,B}**: 24 bits 
 - **Logic resource (ALM)**: 214
-- **Distributed FF **: 31
+- **Distributed FF count**: 31
 - **Total BRAM size (Bytes)**: 38,400
 - **Total power estimate**: 424.55 mw 
