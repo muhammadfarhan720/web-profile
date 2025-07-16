@@ -1,6 +1,6 @@
 ---
 title: "Hardware–software co-design: Mclaurin Series on-board solver design by PS-PL integration "
-description: "Designed a PLL for frequency generation (200 MHz to 1.6 GHz) with optimized settling times and low power consumption."
+description: "This design utilizes the NIOS II soft-core CPU (PS) to compute complex Maclaurin series expansions, while the FPGA fabric (PL) handles real-time sample delivery and result capture for seamless on-board hardware-software integration."
 github: "https://github.com/muhammadfarhan720/Softcore-CPU-Solver"
 layout: single
 order: 1
