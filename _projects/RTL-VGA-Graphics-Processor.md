@@ -15,4 +15,4 @@ order: 3
 - **Logic resource (ALM)**: 214
 - **Distributed FF **: 31
 - **Total BRAM size (Bytes)**: 38,400
-- **Top module pins (I/O)**: 31 
+- **Total power estimate**: 424.55 mw 
