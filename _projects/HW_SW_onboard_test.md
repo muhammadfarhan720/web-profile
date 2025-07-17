@@ -8,14 +8,10 @@ order: 1
 
 ## Project Overview
 
-- **Frequency Range**: 200 MHz to 1.6 GHz
-- **Supply Voltage**: 1.2 V
-- **Settling Times**:
-  - Slow-Slow (SS): 873 ns
-  - Typical-Typical (TT): 715 ns
-  - Fast-Fast (FF): 507 ns
-- **Power Consumption**:
-  - SS: 110.5 µW
-  - TT: 163.4 µW
-  - FF: 215.3 µW
-- **Optimization**: Low power and fast settling across PVT variations
+- **PS CPU spec**: NIOS II
+- **FPGA PL fabric**: Cyclone V 
+- **Block memory size (Bytes)**: 31920 
+- **Logic resource (ALM)**: 1704
+- **Distributed FF count**: 2818
+- **Total power estimate**: 449.06 mw 
+
