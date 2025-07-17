@@ -9,6 +9,8 @@ order: 1
 ## Project Overview
 
 - **PS CPU spec**: NIOS II
+- **PS programming**: C
+- **PL HDL**: SystemVerilog
 - **FPGA PL fabric**: Cyclone V 
 - **Block memory size (Bytes)**: 31920 
 - **Logic resource (ALM)**: 1704

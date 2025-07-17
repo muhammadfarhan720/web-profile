@@ -11,6 +11,7 @@ order: 2
 Implementation on VC-707 FPGA :
 - **HDL Coding** : VHDL + Verilog
 - **LUT resource**: 13314
+- **Important IPs**: Tri-mode-ethernet-MAC (TEMAC), UART, DSP48E2 
 - **FF count**: 10750
 - **BRAM count** : 6
 - **Static Power Consumption**: 262 mW
