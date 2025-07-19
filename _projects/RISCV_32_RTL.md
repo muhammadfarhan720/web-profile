@@ -8,11 +8,9 @@ order: 1
 
 ## Project Overview
 
-- **PS CPU spec**: NIOS II
-- **FPGA PL fabric**: Cyclone V 
-- **PS programming**: C
-- **PL HDL**: SystemVerilog
-- **Block memory size (Bytes)**: 31920 
-- **Logic resource (ALM)**: 1704
-- **Distributed FF count**: 2818
-- **Total power estimate**: 449.06 mw 
+- **HDL programming**: Verilog
+- **Target device**: Zynq-7000 ZC-702
+- **Block RAM**: 1.5 
+- **LUT count**: 378
+- **Distributed FF count**: 94
+- **Total power estimate**: 114 mw 
