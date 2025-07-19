@@ -3,7 +3,7 @@ title: "An efficient recurrent neural network (RNN) inference chip design for MI
 description: "This design presents an energy efficient ANN accelerator RTL design which deploys MAC-tanh operations leveraging DSP48E1 IP in Virtex VC-707 FPGA for MIMO OFDM symbol detection"
 github: "https://github.com/muhammadfarhan720/RNN-MIMO-Ethernet-accelerator"
 layout: single
-order: 2
+order: 1
 ---
 
 ## Project Overview
