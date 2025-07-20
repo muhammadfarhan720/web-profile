@@ -18,14 +18,15 @@ redirect_from:
 
 
 
-
 🎓 I'm a Third-year PhD student at Virginia Tech.
 
-⚡ My research interests include Analog Mixed-Signal Integrated Circuits, Neuromorphic Computing, AI Hardware Accelerators, and In-Memory Computing.
+⚡ My research focuses on hardware-efficient ML algorithm design and RTL development, optimization, and verification for energy-efficient neuromorphic accelerators targeting FPGA/ASIC implementations.
 
-💡 I love designing circuits with the same passion and precision as Leonardo da Vinci brought to his masterpieces.
+🧠 I thrive at the intersection of mathematical logic, digital systems, and architectural innovation—translating complex algorithms into high-performance, silicon-ready designs.
 
-🎯 Taking on challenges and fulfilling them isn't just work—it's an addiction that drives me forward.
+🛠️ I excel at breaking down complex hardware architectures into modular tasks, coordinating with team members, and integrating their contributions into efficient, unified RTL systems.
 
-💬 “The expert at anything was once a beginner.” – Helen Hayes 
+🎯 Solving complex problems, learning every day, and growing alongside others—it's not just my work, it's how I grow.
+
+💬 “Programs must be written with the idea that they will be read by people, and only incidentally for machines to execute.” — Harold Abelson
 
