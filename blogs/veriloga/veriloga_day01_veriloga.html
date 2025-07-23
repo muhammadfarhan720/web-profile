@@ -1,16 +1,20 @@
 ---
 layout: archive
-title: "VerilogA Day 01: What is Verilog-A!"
+title: "Example : PPA optimization on FPGA  "
 ---
 
 
 <article class="blog-post">
   <p>Posted on: October 24, 2024</p>
 
-    <h3>Imagine This...</h3>
-    <p>You're deep into an analog circuit simulation, adjusting parameters over and over again, and wondering—could there be a simpler way to model that circuit block without redesigning it every time? Welcome to the world of Verilog-A!</p>
-    <p>Welcome to the fascinating world of Verilog-A! If you've ever dabbled in analog circuit design, you know that capturing the complexity of real-world circuits can be a challenge. But fear not! In this post, we'll explore the wonders of Verilog-A, making it as engaging as a stroll through a bustling electronics market.</p>
-    
+<h3>What is PPA optimization ? </h3>
+<p>RTL designers who write HDL code to design a circuit do not only have to fulfill the functional verification, the designer needs to meet the specifications given by Vendors of 3 respective metrics : Performance, Power and Area (PPA) !</p>
+<ul>
+  <li><strong>Performance</strong> - Maximum operating frequency capacity of the chip (i.e. DUT for FPGA) (This is the most critical spec)</li>
+  <li><strong>Power</strong> - Consume minimal dynamic and static power</li>
+  <li><strong>Area</strong> - Take the least area on the given chip area (i.e in terms of FPGA: least amount of Logic and memory resources such as LUT, FF, etc)</li>
+</ul>
+
     <h2>What is Verilog-A?</h2>
     <p>Verilog-A is a high-level modeling language designed specifically for analog and mixed-signal systems. It allows engineers to describe the behavior of electronic components in a way that's both intuitive and powerful. Think of it as a magic wand for circuit designers—turning abstract ideas into tangible simulations.</p>
     
