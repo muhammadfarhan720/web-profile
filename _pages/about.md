@@ -13,7 +13,7 @@ redirect_from:
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 20px;
     flex-wrap: wrap;
     margin-top: 20px;
@@ -45,9 +45,9 @@ redirect_from:
 <div class="image-wrapper">
   <div class="image-box">
     <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/SNN_Farhan.png" target="_blank">
-      <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/SNN_Farhan.png" alt="Successful Tapeout of 22nm AI Chip">
+      <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/SNN_Farhan.png" alt="RTL Schematic of a complete SNN-AI accelerator">
     </a>
-    <p><em>Successful Tapeout of 22nm AI Chip</em></p>
+    <p><em>Successful RTL Schematic of a complete SNN-AI accelerator </em></p>
   </div>
 </div>
 
