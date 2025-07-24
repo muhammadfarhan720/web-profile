@@ -22,11 +22,15 @@ title: "Example : PPA optimization on FPGA  "
     <p>Spike-Timing-Dependent Plasticity (STDP) is a learning rule inspired by how the human brain works. It changes the weight strength between a pair of neurons based on when they fire. If the presynaptic neuron fires just before the next layer postsynaptic one, the connection gets stronger. But if it fires after, the connection becomes weaker. This helps spiking neural networks (SNNs) learn patterns that happen over time, similar to how our brain processes information. 
       Because of this, STDP is useful in building energy-efficient on-chip trainable AI-computing systems for things like real-time learning, robotics, and edge devices.</p>
 
-  <!-- GIF animation -->
-  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/STDP_GIF_speed_final.gif" 
-       alt="STDP Learning Animation" 
-       style="width: 100%; max-width: 600px; display: block; margin-top: 10px;">
+ 
+<!-- GIF animation with clickable link -->
+  <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/STDP_GIF_speed_final.gif" target="_blank">
+    <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/STDP_GIF_speed_final.gif" 
+         alt="STDP Learning Animation" 
+         style="width: 100%; max-width: 600px; display: block; margin-top: 10px;">
+  </a>
   <p><em>A visualization of STDP weight update mechanism between 4 pre-synaptic and 1 post-synaptic neuron</em></p>
+  
 
     
 <!--     <h2>Verilog, Verilog-A, and Verilog-AMS: What's the Difference?</h2>
@@ -76,9 +80,16 @@ title: "Example : PPA optimization on FPGA  "
         </tbody>
     </table>
  -->
-    <h2>Unsupervised learning engine block diagram</h2>
-    <p>Below is the block diagram of a circuit design that implements spike timing dependent plasticity training in a brain-inspired AI accelerator</p>
-    <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/SotA_STDP_LE_PL.png" alt="On-chip local learning" style="width: 100%; max-width: 600px;">
+  <h2>Unsupervised Learning Engine Block Diagram</h2>
+  <p>Below is the block diagram of a circuit design that implements spike-timing-dependent plasticity training in a brain-inspired AI accelerator.</p>
+  
+  <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/SotA_STDP_LE_PL.png" target="_blank">
+    <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/SotA_STDP_LE_PL.png" 
+         alt="On-chip local learning" 
+         style="width: 100%; max-width: 600px; display: block; margin-bottom: 10px;">
+  </a>
+  <p><em>Block-level RTL diagram of STDP learning logic integrated into a neuromorphic accelerator</em></p>
+  
 
   
     <h2>Why Use Verilog-A?</h2>
