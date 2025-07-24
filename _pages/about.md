@@ -47,7 +47,7 @@ redirect_from:
     <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/SNN_Farhan.png" target="_blank">
       <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/SNN_Farhan.png" alt="RTL Schematic of a complete SNN-AI accelerator">
     </a>
-    <p><em>Successful RTL Schematic of a complete SNN-AI accelerator </em></p>
+    <p><em> RTL Schematic of a complete SNN-AI accelerator </em></p>
   </div>
 </div>
 
