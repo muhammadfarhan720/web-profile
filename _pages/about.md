@@ -8,13 +8,49 @@ redirect_from:
   - /about.html
 ---
 
+<style>
+  .image-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
 
-<div style="float: right; text-align: center; width: 300px; margin-left: 50px; margin-top: 30px">
-  <a href="https://raw.githubusercontent.com/salekinchowdhury/profile/master/images/MP225A_620px.png" target="_blank">
-    <img src="https://raw.githubusercontent.com/salekinchowdhury/profile/master/images/MP225A_620px.png" alt="Successful Tapeout of 22nm AI Chip" style="width: 100%;">
-  </a>
-  <p><em>Successful Tapeout of 22nm AI Chip</em></p>
+  .image-box {
+    max-width: 300px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .image-box img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 768px) {
+    .image-wrapper {
+      justify-content: center;
+    }
+
+    .image-box {
+      margin-top: 20px;
+    }
+  }
+</style>
+
+<div class="image-wrapper">
+  <div class="image-box">
+    <a href="https://raw.githubusercontent.com/salekinchowdhury/profile/master/images/MP225A_620px.png" target="_blank">
+      <img src="https://raw.githubusercontent.com/salekinchowdhury/profile/master/images/MP225A_620px.png" alt="Successful Tapeout of 22nm AI Chip">
+    </a>
+    <p><em>Successful Tapeout of 22nm AI Chip</em></p>
+  </div>
 </div>
+
 
 
 
