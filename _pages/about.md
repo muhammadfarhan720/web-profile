@@ -44,8 +44,8 @@ redirect_from:
 
 <div class="image-wrapper">
   <div class="image-box">
-    <a href="https://github.com/muhammadfarhan720/web-profile/blob/master/images/SNN_Farhan.png" target="_blank">
-      <img src="https://github.com/muhammadfarhan720/web-profile/blob/master/images/SNN_Farhan.png" alt="Successful Tapeout of 22nm AI Chip">
+    <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/SNN_Farhan.png" target="_blank">
+      <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/SNN_Farhan.png" alt="Successful Tapeout of 22nm AI Chip">
     </a>
     <p><em>Successful Tapeout of 22nm AI Chip</em></p>
   </div>
