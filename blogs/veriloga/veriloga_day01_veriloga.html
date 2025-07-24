@@ -16,10 +16,11 @@ title: "Example : PPA optimization on FPGA  "
 </ul>
 
     <h2>In this blog we show an example of PPA optimization of RTL design on FPGA</h2>
-    <p>Let us take an RTL design of an unsupervised learning engine from a neuromorphic AI accelerator designed by <a href="https://dl.acm.org/doi/10.1145/3313866" target="_blank">Liu et al. (2019)</a>. The details of how the design functions and about it's implementation of the learning rule is explained in this blog  <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank"> STDP learning engine.</a> </p>
+    <p>Let us take an RTL design of an unsupervised learning engine that implements spike timing dependent plasticity (STDP) training from a brain-inspired neuromorphic AI accelerator designed by <a href="https://dl.acm.org/doi/10.1145/3313866" target="_blank">Liu et al. (2019)</a>. The details of the STDP learning rule and how the learning engine design functions is explained in this blog  <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank"> STDP learning engine.</a> </p>
     
-    <h3>A Brief History</h3>
-    <p>Introduced in the early 1990s, Verilog-A emerged as a response to the growing need for accurate analog modeling. Before its advent, engineers struggled with cumbersome and often inadequate tools. The arrival of Verilog-A was like discovering a hidden treasure chest; it opened up new possibilities for design and simulation.</p>
+    <h3>A Brief Intro to STDP</h3>
+    <p>Spike-Timing-Dependent Plasticity (STDP) is a learning rule inspired by how the human brain works. It changes the connection strength between two neurons based on when they fire. If the first (presynaptic) neuron fires just before the second (postsynaptic) one, the connection gets stronger. But if it fires after, the connection becomes weaker. This helps spiking neural networks (SNNs) learn patterns that happen over time, similar to how our brain processes information. 
+      Because of this, STDP is useful in building energy-efficient on-chip trainable AI-computing systems for things like real-time learning, robotics, and edge devices.</p>
     
     <h2>Verilog, Verilog-A, and Verilog-AMS: What's the Difference?</h2>
     <p>To appreciate Verilog-A, it’s essential to understand how it fits into the broader Verilog ecosystem. Below is a comparison of Verilog, Verilog-A, and Verilog-AMS:</p>
@@ -68,9 +69,9 @@ title: "Example : PPA optimization on FPGA  "
         </tbody>
     </table>
 
-    <h2>Venn Diagram Representation</h2>
-    <p>Below is a Venn diagram illustrating the relationships between Verilog, Verilog-A, and Verilog-AMS:</p>
-    <img src="https://raw.githubusercontent.com/salekinchowdhury/profile/master/files/veriloga/veriloga_day01/verilog_venn_diagram.png" alt="Venn Diagram of Verilog, Verilog-A, and Verilog-AMS" style="width: 100%; max-width: 600px;">
+    <h2>Unsupervised learning engine block diagram</h2>
+    <p>Below is the block diagram of a circuit design that implements spike timing dependent plasticity training in a brain-inspired AI accelerator</p>
+    <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/SotA_STDP_LE_PL.png" alt="On-chip local learning" style="width: 100%; max-width: 600px;">
 
   
     <h2>Why Use Verilog-A?</h2>
