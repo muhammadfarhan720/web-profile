@@ -96,10 +96,18 @@ title: "Example : PPA optimization on FPGA  "
 <p> Since the function of the circuit was explained in details in the <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank"> blog </a> mentioned before, we are only going to focus how can a simple PPA optimization be done for such a circuit. The SystemVerilog RTL code of the entire learning engine architecture along with it's testbench has been attached to this repository <a href="https://github.com/muhammadfarhan720/STDP_learning_engine" target="_blank"> link </a>.</p>
   
     <h2>PPA optimization steps on FPGA</h2>
-    <p>Here are a few compelling reasons to embrace this powerful language:</p>
+    <p>Here are the sequential steps how we should inspect an existing design for PPA optimization : </p>
     <ul>
-        <li><strong>Performance:</strong> write details of the current state</li>
-        <li><strong>Area</strong> It can be used to model a wide variety of components, from simple resistors to complex operational amplifiers.</li>
+        <li><strong>Performance:</strong> Performance means the maximum operating clock frequency that the design can run. It determines design's processing speed and generally the most important spec that must be met as provided by the Vendor. We can find out the approximate maximum operating frequency $F_{max}$ from the Vivado timing report. Let us check the screenshot from the implementation timing report of the current learning engine design in the following :  Now the maximum clock frequency or $F_{max}$ of a design spec mainly depends upon the longest delay path i.e. critical path from the design.   </li>
+
+    <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/Vivado_basic_LE_timing.PNG" target="_blank">
+    <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/Vivado_basic_LE_timing.PNG" 
+         alt="Vivado Timing Report - Implementation" 
+         style="width: 100%; max-width: 600px; display: block; margin-bottom: 10px;">
+  </a>
+
+      
+      <li><strong>Area</strong> It can be used to model a wide variety of components, from simple resistors to complex operational amplifiers.</li>
         <li><strong>Power</strong> Seamlessly integrates with existing Verilog and SystemVerilog designs, allowing for mixed-signal simulation.</li>
     </ul>
     
