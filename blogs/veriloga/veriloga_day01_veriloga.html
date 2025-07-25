@@ -6,7 +6,10 @@ title: "Example : PPA optimization on FPGA  "
 
 <article class="blog-post">
   <p>Posted on: October 24, 2024</p>
+  <p id="read-time" style="font-style: italic; color: gray;"></p>
 
+  <div id="blog-content">
+  
 <h3>What is PPA optimization ? </h3>
 <p>RTL designers who write HDL code to design a circuit do not only have to fulfill the functional verification, the designer needs to meet the specifications given by Vendors of 3 respective metrics : Performance, Power and Area (PPA) !</p>
 <ul>
@@ -90,7 +93,7 @@ title: "Example : PPA optimization on FPGA  "
   </a>
   <p><em>Block-level RTL diagram of STDP learning logic integrated into a neuromorphic accelerator</em></p>
   
-<p> Since the function of the circuit was explained in details in the <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank"> link </a> mentioned before, we are only going to focus how can a simple PPA optimization be done for such a circuit. </p>
+<p> Since the function of the circuit was explained in details in the <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank"> blog </a> mentioned before, we are only going to focus how can a simple PPA optimization be done for such a circuit. The SystemVerilog RTL code of the entire learning engine architecture along with it's testbench has been attached to this repository <a href="https://github.com/muhammadfarhan720/STDP_learning_engine" target="_blank"> link </a>.</p>
   
     <h2>PPA optimization steps on FPGA</h2>
     <p>Here are a few compelling reasons to embrace this powerful language:</p>
@@ -139,5 +142,20 @@ title: "Example : PPA optimization on FPGA  "
 </article>
 
 
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const WORDS_PER_MIN = 200;
+    const contentElem = document.getElementById("blog-content");
+    if (contentElem) {
+      const text = contentElem.innerText || "";
+      const wordCount = text.trim().split(/\s+/).length;
+      const timeToRead = Math.max(1, Math.ceil(wordCount / WORDS_PER_MIN));
+      const rt = document.getElementById("read-time");
+      if (rt) {
+        rt.innerText = timeToRead + (timeToRead === 1 ? " min read" : " mins read");
+      }
+    }
+  });
+</script>
   
 </article>
