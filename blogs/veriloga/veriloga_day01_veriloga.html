@@ -114,14 +114,22 @@ F_{\text{max}} = \frac{1}{
 T_{\text{clk-q}} + T_{\text{logic}} + T_{\text{routing}} + T_{\text{setup}} - T_{\text{skew}}
 }
 $$
-<p>Assuming  \( T_{\text{skew}} \)=0 and grouping the other delay terms  into a single critical path delay \( T_{\text{critical-path}} \), we can rewrite the equation as:</p>
+<p>Assuming  \( T_{\text{skew}} \)=0 and grouping the other delay terms  into a single critical path delay \( T_{\text{critical-path}} \) , we can rewrite the equation as:</p>
 
           $$
 F_{\text{max}} = \frac{1}{
 T_{\text{critical-path}} }
-
 $$
+Now let us analyze the critical path of this design using the Vivado Timing Summary. The screenshot below highlights the setup timing, which is the most critical delay component in synchronous designs.     
+          
+<a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/criticalpath_scr.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/criticalpath_scr.jpg" 
+       alt="Critical Path Timing Screenshot" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 10px;">
+</a>
 
+According to the report, the longest datapath delay—measured at 5.393 ns—spans from the input port (counter index) to the priority encoder logic. Reducing this critical path delay will result in increasing the maximum operating frequency, enabling the circuit to operate with higher processing speed.
+          
           </li>
 
       
