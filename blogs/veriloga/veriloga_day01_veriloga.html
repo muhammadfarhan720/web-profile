@@ -95,7 +95,7 @@ title: "Example : PPA optimization on FPGA  "
   
 <p> Since the function of the circuit was explained in details in the <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank"> blog </a> mentioned before, we are only going to focus how can a simple PPA optimization be done for such a circuit. The SystemVerilog RTL code of the entire learning engine architecture along with it's testbench has been attached to this repository <a href="https://github.com/muhammadfarhan720/STDP_learning_engine" target="_blank"> link </a>.</p>
   
-    <h2>PPA optimization steps on FPGA</h2>
+    <h2>Inspection steps for PPA optimization on FPGA</h2>
     <p>Here are the sequential steps how we should inspect an existing design for PPA optimization : </p>
     <ul>
         <li><strong>Performance:</strong> Performance means the maximum operating clock frequency that the design can run. It determines design's processing speed and generally the most important spec that must be met as provided by the Vendor. We can find out the approximate maximum operating frequency \(F_{max}\) from the Vivado timing report. Let us check the screenshot from the implementation timing report of the current learning engine design in the following :
@@ -114,14 +114,22 @@ F_{\text{max}} = \frac{1}{
 T_{\text{clk-q}} + T_{\text{logic}} + T_{\text{routing}} + T_{\text{setup}} - T_{\text{skew}}
 }
 $$
-<p>Assuming  \( T_{\text{skew}} \)=0 and grouping the other delay terms  into a single critical path delay \( T_{\text{critical-path}} \), we can rewrite the equation as:</p>
+<p>Assuming  \( T_{\text{skew}} \)=0 and grouping the other delay terms  into a single critical path delay \( T_{\text{critical-path}} \) , we can rewrite the equation as:</p>
 
           $$
 F_{\text{max}} = \frac{1}{
 T_{\text{critical-path}} }
-
 $$
+Now let us analyze the critical path of this design using the Vivado Timing Summary. The screenshot below highlights the setup timing, which is the most critical delay component in synchronous designs.     
+          
+<a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/criticalpath_scr.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/criticalpath_scr.jpg" 
+       alt="Critical Path Timing Screenshot" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 20px;">
+</a>
 
+According to the report, the longest datapath delay—measured at 5.393 ns—spans from the input port (counter index) to the priority encoder logic. Reducing this critical path delay will result in increasing the maximum operating frequency, enabling the circuit to operate with higher processing speed.
+          
           </li>
 
       
