@@ -170,7 +170,7 @@ According to the report, the longest datapath delay—measured at 5.393 ns—spa
 <p>
   Please read the details of the function of the STDP learning engine and how it implements STDP learning has been well explained in this 
   <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank">blog</a>, 
-  to understand the authors structure and mechanism. In brief, in order to determine the timing difference of the presnaptic vs post-synaptic spike events, the authors use two sets of priority encoder combined in one module that generates positive and negative timing difference to inform the learning engine whether to strengthen or weaken the existing weights. The RTL code for the priority encoder in the neuron’s learning engine, which records spike events from the current neuron and its presynaptic neurons over the past 16 timesteps by storing them in shift registers, is presented as follows: </p>
+  to understand the authors structure and mechanism. In brief, in order to determine the timing difference of the presnaptic vs post-synaptic spike events, the authors use two sets of priority encoder combined in one module that generates positive or negative timing difference to inform the learning engine whether to strengthen or weaken the existing weights. The RTL code for the priority encoder in the neuron’s learning engine, which records spike events from the current neuron and its presynaptic neurons over the past 16 timesteps by storing them in shift registers, is presented as follows: </p>
 
 
 <pre><code class="language-systemverilog">
