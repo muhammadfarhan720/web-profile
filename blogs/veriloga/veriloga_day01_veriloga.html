@@ -147,8 +147,15 @@ According to the report, the longest datapath delay—measured at 5.393 ns—spa
 <p>From the report, we observe that the design utilizes <strong>179 LUTs</strong> and <strong>347 flip-flops</strong>, which are the primary contributors to logic resource usage in this implementation of the STDP learning engine since no BRAM or DSP are being used.</p>
       </li>
       
-        <li><strong>Power</strong>  Power optimization in FPGA design aims to reduce both <em>dynamic</em> and <em>static</em> power consumption while maintaining required performance and functionality. The power consumed due to switching activitiy within the programmable logic blocks and their interconnect is referred mainly as dynamic power whereas the power consumed due to leakage current within the transistor components is known as static power. 
-        <p>There are different ways to reduce power consumption in RTL design for FPGA such as reducing the number of resources, replacing the CLB logic based designs with vendor provided optimized IPs, enabling a specific submodule only when it is needed to operate, clock gating etc.</p>
+        <li><strong>Power</strong>  Power optimization in FPGA design aims to reduce both <em>dynamic</em> and <em>static</em> power consumption while maintaining required performance and functionality. The power consumed due to switching activitiy within the programmable logic blocks and their interconnect is referred mainly as dynamic power whereas the power consumed due to leakage current within the transistor components is known as static power. Let us have a look at the following screenshot from Vivado implementation power report where we see dynamic power is about 25 mw and static power consumption is about 105mw:  
+        <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/basic_power.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/basic_power.jpg" 
+       alt="Basic Power Report Screenshot" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 20px;">
+</a>
+
+          <p>There are different ways to reduce power consumption in RTL design for FPGA such as reducing the number of resources, replacing the CLB logic based designs with vendor provided optimized IPs, enabling a specific submodule only when it is needed to operate, clock gating etc.</p>
+          
         </li>
     </ul>
     
