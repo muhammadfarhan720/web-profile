@@ -168,26 +168,10 @@ According to the report, the longest datapath delay—measured at 5.393 ns—spa
   <h2>Performance Optimization</h2>
 
 <p>
-  Although the details of the function of the STDP learning engine and how it implements STDP learning has been well explained in this 
+  Please read the details of the function of the STDP learning engine and how it implements STDP learning has been well explained in this 
   <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank">blog</a>, 
-  we give the brief description in this paragraph. Since the function of the learning engine is to track the timing of the incoming spikes from presynaptic neurons of the previous layer to the current layer post-synaptic neuron, it is done by loading the spike events to a set of presynaptic and one post-synaptic SIPO shift registers.
-</p>
+  to understand the authors structure and mechanism. In brief, in order to determine the timing difference of the presnaptic vs post-synaptic spike events, the authors use two sets of priority encoder combined in one module that generates positive and negative timing difference to inform the learning engine whether to strengthen or weaken the existing weights. The RTL code for the priority encoder in the neuron’s learning engine, which records spike events from the current neuron and its presynaptic neurons over the past 16 timesteps by storing them in shift registers, is presented as follows: </p>
 
-<p>
-  The SIPOs load the spike event at each timestep to the MSB and then shift them to the right. They shift only when spike events (1/0) are loaded to MSBs from post-synaptic and the pre-synaptic neurons outputs. The shift registers corresponding to the presynaptic neurons are then selected by an M to 1 multiplexer, where M is the number of presynaptic neurons connected to the current post synaptic neuron, which possesses the learning engine.
-</p>
-
-<p>
-  Once one of the presynaptic shift registers is selected and its data is passed through the multiplexer, the contents of the selected presynaptic and the post synaptic shift registers are compared to each other to determine the <code>&Delta;t</code> to adjust that given weight.
-</p>
-
-<p>
-  This is done by comparator, which looks at the Most Significant bit (MSB) of the two spike trains and looks at which of the two is high/Logic-1. If the Pre-synaptic shift register MSB is high, the content of the post-synaptic shift register will be sent to the priority encoder and the produced output <code>&Delta;t</code> will be a negative timing difference. Vice versa, if the Post-synaptic shift register MSB is high, the content of the pre-synaptic shift register will be sent to the priority encoder and the produced output <code>&Delta;t</code> will be a positive timing difference.
-</p>
-
-<p>
-  We can model this design in the following Verilog code:
-</p>
 
 <pre><code class="language-systemverilog">
 always_ff @(posedge clk) begin
@@ -258,7 +242,7 @@ always_comb begin
 end
 </code></pre>
 
-  
+<p>As seen above, the timing difference can be from the range of -15 to +15 as an integer value depending our whether it is a potentiation or a depression case. The output of timing difference value from the priority encoder is used to index a LUT that stores precise weight change values for both positive and negative cases.</p>
     <pre><code> 
     `include "discipline.h" // Include Verilog-A libraries
     `include "constants.h"  // Include fundamental constants
