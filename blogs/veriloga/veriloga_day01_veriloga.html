@@ -160,10 +160,10 @@ According to the report, the longest datapath delay—measured at 5.393 ns—spa
     </ul>
     
     <h3>Let’s Dive In and do a PPA Optimization for the STDP Learning Engine !!</h3>
-    <p>Picture yourself in a lab, surrounded by oscilloscopes and circuit boards. You have an idea for a new analog filter. Instead of reaching for your soldering iron, you sit down at your computer and write a few lines of Verilog-A. Suddenly, your concept transforms into a dynamic model that you can simulate. The thrill of creation without the mess!</p>
+    <p>As we discussed before, the first P (Performance !!) is the most important field that we should try to optimize on. But we should also be careful about the area and power usage and meet all the specifications. We will do a step by step PPA optimization in the following </p>
     
-    <h2>Getting Started with Verilog-A</h2>
-    <p>Ready to dive in? Here’s a simple example to get you started:</p>
+    <h2>Performance optimization</h2>
+    <p>Since we already found that the maximum critical path is from the input to the priority encoder, let us try reducing it so improve the \(F_{max}\)</p>
 
   
     <pre><code> 
