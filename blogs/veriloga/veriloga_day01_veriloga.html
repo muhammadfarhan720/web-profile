@@ -129,11 +129,24 @@ Now let us analyze the critical path of this design using the Vivado Timing Summ
 </a>
 
 According to the report, the longest datapath delay—measured at 5.393 ns—spans from the input port (counter index) to the priority encoder logic. Reducing this critical path delay will result in increasing the maximum operating frequency, enabling the circuit to operate with higher processing speed.
-          
+          <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/criticalpath_scr.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/criticalpath_scr.jpg" 
+       alt="Critical Path Timing Screenshot" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 20px;">
+</a>
           </li>
 
       
-      <li><strong>Area</strong> It can be used to model a wide variety of components, from simple resistors to complex operational amplifiers.</li>
+      <li><strong>Area</strong> In general perspective,  Area refers to the amount of hardware resources consumed by RTL implementation on the target FPGA device. Specifically, for FPGA area measuring, we analyze the major component counts such as LUT, FF/Registers, BRAM and DSP blocks. Now let us have a look at our current resource usage from Vivado utilization report :
+      <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/util_scr.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/util_scr.jpg" 
+       alt="Vivado Utilization Report Screenshot" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 20px;">
+</a>
+
+<p>From the report, we observe that the design utilizes <strong>179 LUTs</strong> and <strong>347 flip-flops</strong>, which are the primary contributors to logic resource usage in this implementation of the STDP learning engine since no BRAM or DSP are being used.</p>
+      </li>
+      
         <li><strong>Power</strong> Seamlessly integrates with existing Verilog and SystemVerilog designs, allowing for mixed-signal simulation.</li>
     </ul>
     
