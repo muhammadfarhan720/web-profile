@@ -147,7 +147,9 @@ According to the report, the longest datapath delay—measured at 5.393 ns—spa
 <p>From the report, we observe that the design utilizes <strong>179 LUTs</strong> and <strong>347 flip-flops</strong>, which are the primary contributors to logic resource usage in this implementation of the STDP learning engine since no BRAM or DSP are being used.</p>
       </li>
       
-        <li><strong>Power</strong>  Power optimization in FPGA design aims to reduce both <em>dynamic</em> and <em>static</em> power consumption while maintaining required performance and functionality. The power consumed due to switching activitiy within the programmable logic blocks and their interconnect is referred mainly as dynamic power whereas the power consumed due to leakage current  </li>
+        <li><strong>Power</strong>  Power optimization in FPGA design aims to reduce both <em>dynamic</em> and <em>static</em> power consumption while maintaining required performance and functionality. The power consumed due to switching activitiy within the programmable logic blocks and their interconnect is referred mainly as dynamic power whereas the power consumed due to leakage current within the transistor components is known as static power. 
+        <p>There are different ways to reduce power consumption in RTL design for FPGA such as reducing the number of resources, replacing the CLB logic based designs with vendor provided optimized IPs, clock gating etc.</p>
+        </li>
     </ul>
     
     <h3>Imagine This...</h3>
