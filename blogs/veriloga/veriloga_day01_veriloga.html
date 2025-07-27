@@ -166,8 +166,77 @@ According to the report, the longest datapath delay—measured at 5.393 ns—spa
 
     
     <h2>Performance optimization</h2>
-    <p>Since we already found that the maximum critical path is from the input to the priority encoder, let us try reducing it so improve the \(F_{max}\)</p>
+    <p>Although the details of the function of the STDP learning engine and how it implements STDP learning has been well explained in this  <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank"> blog </a>, we give the brief description in this paragraph. Since the function of the learning engine is to track the timing of the incoming spikes from presynaptic neurons of the previous layer to the current layer post-synaptic neuron, it is done by loading the spike events to a set of presynaptic and one post-synaptic SIPO shift registers. The SIPOs load the spike event at each timestep to the MSB and then shift them to the right. They shift only when spike events (1/0) are loaded to MSBs from post-synaptic and the pre-synaptic neurons outputs. The shift registers corresponding to the presynaptic neurons are then selected by an M to 1 multiplexer, where M is the number of presynaptic neurons connected to the current post synaptic neuron, which possesses the learning engine. The shift registers corresponding to the presynaptic neurons are then selected by an M to 1 multiplexer, where M is the number of presynaptic neurons connected to the current post synaptic neuron, which possessing the learning engine. Once one of the presynaptic shift registers is selected and its data is passed through the multiplexer, the contents of the selected presynaptic and the post synaptic shift registers are compared to each other to determine the $$\Delta t$$ to adjust that given weight. This is done by comparator, which looks at the Most Significant bit(MSB) of the two spike trains and looks at which of the two is high/Logic-1. If the Pre-synaptic shift register MSB is high, the content of the post-synaptic shift register will be sent to the priority encoder and the produced output $$\Delta t$$ will be a negative timing difference. Vice versa, if the Post-synaptic shift register MSB is high, the content of the pre-synaptic shift register will be sent to the priority encoder and the produced output $$\Delta t$$ will be a positive timing difference.  We can model this design in the following verilog code:  </p>
 
+    ```SystemVerilog
+always_ff @(posedge clk) begin
+        if (rst) begin
+            data_reg <= 16'b0;
+            flag <= 1'b0;
+            LUT_out_reg <= 20'b0;
+        end else begin
+            if(Post[15]==1) begin
+                data_reg <= Pre;
+                flag <= 1'b0; // Post-synaptic neuron is active, set flag to 0
+            end
+            else if (Pre[15] == 1) begin
+                data_reg <= Post;
+                flag <= 1'b1; // Pre-synaptic neuron is active, set flag to 1
+            end
+            else begin
+                data_reg <= 16'b0; // No active neuron, reset to zero
+                flag <= 1'b0; // Reset flag
+            end
+            // Update LUT output register
+            LUT_out_reg <= LUT_out; // Store LUT output in register
+        end
+    end
+
+    always_comb begin
+        if(flag) begin
+            unique casez(data_reg)
+                16'b1???????????????: TimingDifference = 6'sd0; // 0
+                16'b01??????????????: TimingDifference = 6'sd1; // 1
+                16'b001?????????????: TimingDifference = 6'sd2; // 2
+                16'b0001????????????: TimingDifference = 6'sd3; // 3
+                16'b00001???????????: TimingDifference = 6'sd4; // 4
+                16'b000001??????????: TimingDifference = 6'sd5; // 5
+                16'b0000001?????????: TimingDifference = 6'sd6; // 6
+                16'b00000001????????: TimingDifference = 6'sd7; // 7
+                16'b000000001???????: TimingDifference = 6'sd8; // 8
+                16'b0000000001??????: TimingDifference = 6'sd9; // 9
+                16'b00000000001?????: TimingDifference = 6'sd10; // 10
+                16'b000000000001????: TimingDifference = 6'sd11; // 11
+                16'b0000000000001???: TimingDifference = 6'sd12; // 12
+                16'b00000000000001??: TimingDifference = 6'sd13; // 13
+                16'b000000000000001?: TimingDifference = 6'sd14; // 14
+                16'b0000000000000001: TimingDifference = 6'sd15; // 15
+                default:              TimingDifference = 6'sd0; // Default case
+            endcase
+        end
+        else if (!flag) begin
+            unique casez(data_reg)
+                    16'b1???????????????: TimingDifference = -6'sd0; // 0
+                    16'b01??????????????: TimingDifference = -6'sd1; // 1
+                    16'b001?????????????: TimingDifference = -6'sd2; // 2
+                    16'b0001????????????: TimingDifference = -6'sd3; // 3
+                    16'b00001???????????: TimingDifference = -6'sd4; // 4
+                    16'b000001??????????: TimingDifference = -6'sd5; // 5
+                    16'b0000001?????????: TimingDifference = -6'sd6; // 6
+                    16'b00000001????????: TimingDifference = -6'sd7; // 7
+                    16'b000000001???????: TimingDifference = -6'sd8; // 8
+                    16'b0000000001??????: TimingDifference = -6'sd9; // 9
+                    16'b00000000001?????: TimingDifference = -6'sd10; // 10
+                    16'b000000000001????: TimingDifference = -6'sd11; // 11
+                    16'b0000000000001???: TimingDifference = -6'sd12; // 12
+                    16'b00000000000001??: TimingDifference = -6'sd13; // 13
+                    16'b000000000000001?: TimingDifference = -6'sd14; // 14
+                    16'b0000000000000001: TimingDifference = -6'sd15; // 15
+                    default:              TimingDifference = -6'sd0; // Default case
+                endcase
+        end
+```
+    
   
     <pre><code> 
     `include "discipline.h" // Include Verilog-A libraries
