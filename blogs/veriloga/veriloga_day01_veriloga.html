@@ -362,7 +362,25 @@ always_comb begin
     endcase
 end
 </code></pre>
-    
+
+<p>Now, we have reduced the priority encoder size !! Let us see if the maximum critical path has been reduced ! Below is the screenshot of the delay summary of setup time of the optimized learning engine from Vivado : </p>
+
+          <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/critical_opt_delay_scr.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/critical_opt_delay_scr.jpg" 
+       alt="Critical Path Optimized Delay Screenshot" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 20px;">
+</a>
+
+          <p> We can see the maximum delay has been reduced to <b>4.801ns from 5.393ns !!</b> That should definitely improve the \(F_{max}\) ! Let's see what Vivado says </p>
+
+          <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/opt_timing_summary.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/opt_timing_summary.jpg" 
+       alt="Optimized Timing Summary" 
+       style="width: 100%; max-width: 600px; display: block; margin-top: 20px; margin-bottom: 20px;">
+</a>
+
+          <p> Taking the setup WNS value from here,  \(F_{\text{max}} \approx \frac{1000}{T_{\text{clock}} - \text{WNS_Setup}}\)=205.34 MHz. <b>Congratulations !! We have achieved improvement of performance from 187.23 MHz to 205.34 MHz. </b> </p>
+          
     <h3>Tips for Writing Verilog-A Code</h3>
     <p>As you start your journey, keep these tips in mind:</p>
     <ul>
