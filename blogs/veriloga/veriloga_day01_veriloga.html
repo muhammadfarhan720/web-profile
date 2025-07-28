@@ -284,7 +284,7 @@ endcase
 
 </code></pre>
 <p>
-Now, if we look closely, you will notice that the STDP LUT memory weight change values are of same magnitude with opposite signs for positive and negative timing difference. So we can come up with a smart solution by taking the advantage of this fact ! How about we reduce the priority encoder size by only generating the timing difference absolute value and take out the sign flag ? Accordingly, if we only keep the magnitudes of the STDP weight changes inside the LUT and use the sign flag as a control bit to dictate the adder whether to add (potentiation) or subtract (depression) those values from current weight inside the dual port weight RAM. This can result into a fewer resource usage and as a result, shorter critical path delay. The new diagram can look as the following :
+Now, if we look closely, you will notice that the STDP LUT memory weight change values are of same magnitude with opposite signs for positive and negative timing difference. So we can come up with a smart solution by taking the advantage of this fact ! How about we reduce the priority encoder size by only generating the timing difference absolute value and take out the sign flag ? Accordingly, we can only keep the magnitudes of the STDP weight changes inside the LUT and use the sign flag as a control bit to dictate the adder whether to add (potentiation) or subtract (depression) those values from current weight inside the dual port weight RAM. This can result into a fewer resource usage and as a result, shorter critical path delay. The new diagram can look as the following :
   </p>
   
 
