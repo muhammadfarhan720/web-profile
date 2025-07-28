@@ -380,7 +380,21 @@ end
 </a>
 
           <p> Taking the setup WNS value from here,  \(F_{\text{max}} \approx \frac{1000}{T_{\text{clock}} - \text{WNS_Setup}}\)=205.34 MHz. <b>Congratulations !! We have achieved improvement of performance from 187.23 MHz to 205.34 MHz. </b> </p>
-          
+
+  
+  <h2>Area Optimization</h2>
+    <p> Since we reduced the size of both the priority encoder and the STDP LUT, let us see the impact from Vivado utilization report for the optimized learning engine : </p>
+
+          <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/opt_util_rep.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/opt_util_rep.jpg" 
+       alt="Optimized Utilization Report" 
+       style="width: 100%; max-width: 600px; display: block; margin-top: 20px; margin-bottom: 20px;">
+</a>
+
+          <p> We can see the resource usage reduced to only <b>141 LUTs from 179 and to 341 Registers from 347 !!</b> Certainly a signficant percentage of resource savings !! Thus we have also achieved Area optimization !!</p>
+
+  <h2>Power Optimization</h2>
+  
     <h3>Tips for Writing Verilog-A Code</h3>
     <p>As you start your journey, keep these tips in mind:</p>
     <ul>
