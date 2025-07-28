@@ -242,20 +242,45 @@ always_comb begin
 end
 </code></pre>
 
-<p>As seen above, the timing difference can be from the range of -15 to +15 as an integer value depending our whether it is a potentiation or a depression case. The output of timing difference value from the priority encoder is used to index a LUT that stores precise weight change values for both positive and negative cases.</p>
-    <pre><code> 
-    `include "discipline.h" // Include Verilog-A libraries
-    `include "constants.h"  // Include fundamental constants
-    
-    module simple_resistor (p, n); // Module definition for a resistor with nodes p and n
-        electrical p, n; // Declare electrical nodes p and n
-        parameter real R = 1k; // Resistor value set to 1k ohms
-    
-        analog begin // Analog block for behavior definition
-            I(p, n) <+ V(p, n) / R; // Current defined by Ohm's Law: I = V/R
-        end
-    endmodule // End of simple_resistor module
-    </code></pre>
+<p>As seen above, the timing difference can be from the range of -15 to +15 as an integer value depending our whether it is a potentiation or a depression case. The output of timing difference value from the priority encoder is used to index a LUT that stores precise weight change values for both positive (potentiation) and negative (depression) cases. The STDP LUT weight change memory of the author's learning engine can be provided as follows : </p>
+
+<pre><code>
+unique casez (TimingDifference)
+    -'sd15:  LUT_out = -'sd22;
+    -'sd14:  LUT_out = -'sd25;
+    -'sd13:  LUT_out = -'sd27;
+    -'sd12:  LUT_out = -'sd30;
+    -'sd11:  LUT_out = -'sd33;
+    -'sd10:  LUT_out = -'sd37;
+    -'sd9:   LUT_out = -'sd41;
+    -'sd8:   LUT_out = -'sd45;
+    -'sd7:   LUT_out = -'sd50;
+    -'sd6:   LUT_out = -'sd55;
+    -'sd5:   LUT_out = -'sd61;
+    -'sd4:   LUT_out = -'sd67;
+    -'sd3:   LUT_out = -'sd74;
+    -'sd2:   LUT_out = -'sd82;
+    -'sd1:   LUT_out = -'sd90;
+     'sd0:   LUT_out =  'sd0;
+     'sd1:   LUT_out =  'sd90;
+     'sd2:   LUT_out =  'sd82;
+     'sd3:   LUT_out =  'sd74;
+     'sd4:   LUT_out =  'sd67;
+     'sd5:   LUT_out =  'sd61;
+     'sd6:   LUT_out =  'sd55;
+     'sd7:   LUT_out =  'sd50;
+     'sd8:   LUT_out =  'sd45;
+     'sd9:   LUT_out =  'sd41;
+     'sd10:  LUT_out =  'sd37;
+     'sd11:  LUT_out =  'sd33;
+     'sd12:  LUT_out =  'sd30;
+     'sd13:  LUT_out =  'sd27;
+     'sd14:  LUT_out =  'sd25;
+     'sd15:  LUT_out =  'sd22;
+    default: LUT_out =  'sd0;
+endcase
+
+</code></pre>
 
   
     <p>In this snippet, we define a simple resistor module. It captures the essence of Ohm’s Law in just a few lines—simple, right?</p>
