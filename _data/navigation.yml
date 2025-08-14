@@ -13,7 +13,7 @@ main:
     url: https://scholar.google.com/citations?user=tYhVbtrZsxwC&hl=en&oi=ao
 
   - title: "Projects"
-    url: /projects_navigation/proj_index/
+    url: /projects_navigation/proj_index
 # /projects/index.html/
 
   - title: "Blogs"
