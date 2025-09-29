@@ -1,0 +1,453 @@
+---
+layout: archive
+title: "Example : PPA optimization on FPGA  "
+---
+<p>Written by <a href="https://muhammadfarhan720.github.io/web-profile/" target="_blank">Muhammad Farhan Azmine</a>, in collaboration with 
+<a href="https://github.com/aaryanvdhawan" target="_blank">Aaryan Dhawan</a></p>
+
+
+<article class="blog-post">
+  <p>Posted on: July 28, 2025</p>
+  <p id="read-time" style="font-style: italic; color: gray;"></p>
+
+  <div id="blog-content">
+  
+<h3>What is PPA optimization ? </h3>
+<p>RTL designers who write HDL code to design a circuit do not only have to fulfill the functional verification, the designer needs to meet the specifications given by vendors of 3 respective metrics : Performance, Power and Area (PPA) !</p>
+<ul>
+  <li><strong>Performance</strong> - Maximum operating frequency capacity of the chip (i.e. DUT for FPGA) (This is the most critical spec)</li>
+  <li><strong>Power</strong> - Consume minimal dynamic and static power</li>
+  <li><strong>Area</strong> - Take the least area on the given chip area (i.e in terms of FPGA: least amount of Logic and memory resources such as LUT, FF, etc)</li>
+</ul>
+
+    <h2>In this blog we show an example of PPA optimization of RTL design on FPGA</h2>
+    <p>Let us take an RTL design of an unsupervised learning engine that implements spike timing dependent plasticity (STDP) training from a brain-inspired neuromorphic AI accelerator designed by <a href="https://dl.acm.org/doi/10.1145/3313866" target="_blank">Liu et al. (2019)</a>. The details of the STDP learning rule and how the learning engine design functions is explained in this blog  <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank"> STDP learning engine</a>. </p>
+    
+    <h3>A Brief Intro to STDP</h3>
+    <p>Spike-Timing-Dependent Plasticity (STDP) is a learning rule inspired by how the human brain works. It changes the weight strength between a pair of neurons based on when they fire. If the presynaptic neuron fires just before the next layer postsynaptic one, the connection gets stronger. But if it fires after, the connection becomes weaker. This helps spiking neural networks (SNNs) learn patterns that happen over time, similar to how our brain processes information. 
+      Because of this, STDP is useful in building energy-efficient on-chip trainable AI-computing systems for things like real-time learning, robotics, and edge devices.</p>
+
+ 
+<!-- GIF animation with clickable link -->
+  <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/STDP_GIF_speed_final.gif" target="_blank">
+    <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/STDP_GIF_speed_final.gif" 
+         alt="STDP Learning Animation" 
+         style="width: 100%; max-width: 600px; display: block; margin-top: 10px;">
+  </a>
+  <p><em>A visualization of STDP weight update mechanism between 4 pre-synaptic and 1 post-synaptic neuron</em></p>
+  
+
+    
+<!--     <h2>Verilog, Verilog-A, and Verilog-AMS: What's the Difference?</h2>
+    <p>To appreciate Verilog-A, it’s essential to understand how it fits into the broader Verilog ecosystem. Below is a comparison of Verilog, Verilog-A, and Verilog-AMS:</p>
+    
+    <h2>Comparison of Verilog, Verilog-A, and Verilog-AMS</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Feature</th>
+                <th>Verilog</th>
+                <th>Verilog-A</th>
+                <th>Verilog-AMS</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Purpose</td>
+                <td>Used for designing digital circuits</td>
+                <td>Used for designing analog circuits</td>
+                <td>Used for designing circuits that have both analog and digital parts</td>
+            </tr>
+            <tr>
+                <td>Modeling Level</td>
+                <td>Creates models of digital systems</td>
+                <td>Creates models of continuous-time analog systems</td>
+                <td>Creates models that include both analog and digital components</td>
+            </tr>
+            <tr>
+                <td>Integration with Other Languages</td>
+                <td>Works well with SystemVerilog</td>
+                <td>Works with Verilog and SystemVerilog</td>
+                <td>Combines features from both Verilog and Verilog-A</td>
+            </tr>
+            <tr>
+                <td>Common Applications</td>
+                <td>Used in microprocessors and digital circuits</td>
+                <td>Used in amplifiers and filters</td>
+                <td>Used in systems that mix analog and digital signals, like radio frequency circuits</td>
+            </tr>
+            <tr>
+                <td>Simulators</td>
+                <td>Can be simulated using tools like ModelSim and VCS</td>
+                <td>Simulated with tools like Cadence Spectre</td>
+                <td>Simulated using tools that support both analog and digital simulations, like Cadence Spectre</td>
+            </tr>
+        </tbody>
+    </table>
+ -->
+  <h2>Unsupervised Learning Engine Block Diagram</h2>
+  <p>Below is the block diagram of a circuit design that implements spike-timing-dependent plasticity training in a brain-inspired AI accelerator.</p>
+  
+  <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/SotA_STDP_LE_PL.png" target="_blank">
+    <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/SotA_STDP_LE_PL.png" 
+         alt="On-chip local learning" 
+         style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 10px;">
+  </a>
+  <p><em>Block-level RTL diagram of STDP learning logic integrated into a neuromorphic accelerator</em></p>
+  
+<p> Since the function of the circuit was explained in details in the <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank"> blog </a> mentioned before, we are only going to focus how can a simple PPA optimization be done for such a circuit. The SystemVerilog RTL code of the entire learning engine architecture along with it's testbench has been attached to this <a href="https://github.com/muhammadfarhan720/STDP_learning_engine" target="_blank"> github repository link </a>.</p>
+  
+    <h2>Inspection steps for PPA optimization on FPGA</h2>
+    <p>Here are the sequential steps how we should inspect an existing design for PPA optimization : </p>
+    <ul>
+        <li><strong>Performance:</strong> Performance means the maximum operating clock frequency that the design can run. It determines design's processing speed and generally the most important spec that must be met as provided by the Vendor. We can find out the approximate maximum operating frequency \(F_{max}\) from the Vivado timing report. Let us check the screenshot from the implementation timing report of the current learning engine design in the following :
+    <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/Vivado_basic_LE_timing.PNG" target="_blank">
+    <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/Vivado_basic_LE_timing.PNG" 
+         alt="Vivado Timing Report - Implementation" 
+         style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px;margin-top: 10px;">
+  </a>
+  <p>Here the Fmax is approximated by using the equation  \(F_{\text{max}} \approx \frac{1000}{T_{\text{clock}} - \text{WNS_Setup}}\)=187.23 MHz in MHz where we used \(T_{\text{clock}}\)=10ns as the base system clock was chosen 100 MHz.</p>
+  Now the maximum clock frequency or \(F_{max}\) of a design spec mainly depends upon the longest delay path i.e. critical path from the design. 
+          
+    <p>We can express the \( F_{\text{max}} \) using the timing components of a typical synchronous digital design as follows:</p>
+
+$$
+F_{\text{max}} = \frac{1}{
+T_{\text{clk-q}} + T_{\text{logic}} + T_{\text{routing}} + T_{\text{setup}} - T_{\text{skew}}
+}
+$$
+<p>Assuming  \( T_{\text{skew}} \)=0 and grouping the other delay terms  into a single critical path delay \( T_{\text{critical-path}} \) , we can rewrite the equation as:</p>
+
+          $$
+F_{\text{max}} = \frac{1}{
+T_{\text{critical-path}} }
+$$
+Now let us analyze the critical path of this design using the Vivado Timing Summary. The screenshot below highlights the setup timing, which is the most critical delay component in synchronous designs.     
+          
+<a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/criticalpath_scr.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/criticalpath_scr.jpg" 
+       alt="Critical Path Timing Screenshot" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 20px;">
+</a>
+
+According to the report, the longest datapath delay—measured at 5.393 ns—spans from the input port (counter index) to the priority encoder logic. Reducing this critical path delay will result in increasing the maximum operating frequency, enabling the circuit to operate with higher processing speed.
+          <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/criticalpath_scr.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/criticalpath_scr.jpg" 
+       alt="Critical Path Timing Screenshot" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 20px;">
+</a>
+          </li>
+
+      
+      <li><strong>Area</strong> In general perspective,  Area refers to the amount of hardware resources consumed by RTL implementation on the target FPGA device. Specifically, for FPGA area measuring, we analyze the major component counts such as LUT, FF/Registers, BRAM and DSP blocks. Now let us have a look at our current resource usage from Vivado utilization report :
+      <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/util_scr.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/util_scr.jpg" 
+       alt="Vivado Utilization Report Screenshot" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 20px;">
+</a>
+
+<p>From the report, we observe that the design utilizes <strong>179 LUTs</strong> and <strong>347 flip-flops</strong>, which are the primary contributors to logic resource usage in this implementation of the STDP learning engine since no BRAM or DSP are being used.</p>
+      </li>
+      
+        <li><strong>Power</strong>  Power optimization in FPGA design aims to reduce both <em>dynamic</em> and <em>static</em> power consumption while maintaining required performance and functionality. The power consumed due to switching activitiy within the programmable logic blocks and their interconnect is referred mainly as dynamic power whereas the power consumed due to leakage current within the transistor components is known as static power. Let us have a look at the following screenshot from Vivado implementation power report where we see dynamic power is about 25 mw and static power consumption is about 105mw:  
+        <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/basic_power.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/basic_power.jpg" 
+       alt="Basic Power Report Screenshot" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 20px;">
+</a>
+
+          <p>There are different ways to reduce power consumption in RTL design for FPGA such as reducing the number of resources by optimizing RTL modules, replacing the CLB logic based designs with vendor provided optimized IPs, enabling a specific submodule only when it is needed to operate, clock gating etc.</p>
+          
+        </li>
+    </ul>
+    
+    <h3>Let’s Dive In and do a PPA Optimization for the STDP Learning Engine !!</h3>
+   <p>
+  As discussed earlier, performance is usually the most critical metric in design optimization. But to build a truly efficient system, we must also keep a close eye on area and power. Let’s now work on a step-by-step PPA optimization of our design.
+  </p>
+
+    
+  <h2>Performance Optimization</h2>
+
+<h4> Notice during the inspection the Vivado showed the maximum critical path delay of 5.393ns is from the input to the priority encoder datapath. Now if we can reduce this delay then we can achieve higher \(F_{max}\) as shown by the direct reciprocal relationship equation before ! </h4>
+    
+<p>
+  Please read the details of the function of the STDP learning engine and how it implements STDP learning has been well explained in this 
+  <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank">blog</a>, 
+  to understand the authors structure and mechanism. In brief, in order to determine the timing difference of the presnaptic vs post-synaptic spike events, the authors use two sets of priority encoder combined in one module that generates positive or negative timing difference to inform the learning engine whether to strengthen or weaken the existing weights. The RTL code for the priority encoder in the neuron’s learning engine, which records spike events from the current neuron and its presynaptic neurons over the past 16 timesteps by storing them in shift registers, is presented as follows: </p>
+
+
+<pre><code class="language-systemverilog">
+always_ff @(posedge clk) begin
+    if (rst) begin
+        data_reg <= 16'b0;
+        flag <= 1'b0;
+        LUT_out_reg <= 20'b0;
+    end else begin
+        if(Post[15]==1) begin
+            data_reg <= Pre;
+            flag <= 1'b0; // Post-synaptic neuron is active, set flag to 0
+        end
+        else if (Pre[15] == 1) begin
+            data_reg <= Post;
+            flag <= 1'b1; // Pre-synaptic neuron is active, set flag to 1
+        end
+        else begin
+            data_reg <= 16'b0; // No active neuron, reset to zero
+            flag <= 1'b0; // Reset flag
+        end
+        // Update LUT output register
+        LUT_out_reg <= LUT_out; // Store LUT output in register
+    end
+end
+
+always_comb begin
+    if(flag) begin
+        unique casez(data_reg)
+            16'b1???????????????: TimingDifference = 6'sd0;
+            16'b01??????????????: TimingDifference = 6'sd1;
+            16'b001?????????????: TimingDifference = 6'sd2;
+            16'b0001????????????: TimingDifference = 6'sd3;
+            16'b00001???????????: TimingDifference = 6'sd4;
+            16'b000001??????????: TimingDifference = 6'sd5;
+            16'b0000001?????????: TimingDifference = 6'sd6;
+            16'b00000001????????: TimingDifference = 6'sd7;
+            16'b000000001???????: TimingDifference = 6'sd8;
+            16'b0000000001??????: TimingDifference = 6'sd9;
+            16'b00000000001?????: TimingDifference = 6'sd10;
+            16'b000000000001????: TimingDifference = 6'sd11;
+            16'b0000000000001???: TimingDifference = 6'sd12;
+            16'b00000000000001??: TimingDifference = 6'sd13;
+            16'b000000000000001?: TimingDifference = 6'sd14;
+            16'b0000000000000001: TimingDifference = 6'sd15;
+            default:              TimingDifference = 6'sd0;
+        endcase
+    end else if (!flag) begin
+        unique casez(data_reg)
+            16'b1???????????????: TimingDifference = -6'sd0;
+            16'b01??????????????: TimingDifference = -6'sd1;
+            16'b001?????????????: TimingDifference = -6'sd2;
+            16'b0001????????????: TimingDifference = -6'sd3;
+            16'b00001???????????: TimingDifference = -6'sd4;
+            16'b000001??????????: TimingDifference = -6'sd5;
+            16'b0000001?????????: TimingDifference = -6'sd6;
+            16'b00000001????????: TimingDifference = -6'sd7;
+            16'b000000001???????: TimingDifference = -6'sd8;
+            16'b0000000001??????: TimingDifference = -6'sd9;
+            16'b00000000001?????: TimingDifference = -6'sd10;
+            16'b000000000001????: TimingDifference = -6'sd11;
+            16'b0000000000001???: TimingDifference = -6'sd12;
+            16'b00000000000001??: TimingDifference = -6'sd13;
+            16'b000000000000001?: TimingDifference = -6'sd14;
+            16'b0000000000000001: TimingDifference = -6'sd15;
+            default:              TimingDifference = -6'sd0;
+        endcase
+    end
+end
+</code></pre>
+
+<p>As seen above, the timing difference can be from the range of -15 to +15 as an integer value depending our whether it is a potentiation or a depression case. The output of timing difference value from the priority encoder is used to index a LUT that stores precise weight change values for both positive (potentiation) and negative (depression) cases. The STDP LUT weight change memory of the author's learning engine can be provided as follows : </p>
+
+<pre><code>
+unique casez (TimingDifference)
+    -'sd15:  LUT_out = -'sd22;
+    -'sd14:  LUT_out = -'sd25;
+    -'sd13:  LUT_out = -'sd27;
+    -'sd12:  LUT_out = -'sd30;
+    -'sd11:  LUT_out = -'sd33;
+    -'sd10:  LUT_out = -'sd37;
+    -'sd9:   LUT_out = -'sd41;
+    -'sd8:   LUT_out = -'sd45;
+    -'sd7:   LUT_out = -'sd50;
+    -'sd6:   LUT_out = -'sd55;
+    -'sd5:   LUT_out = -'sd61;
+    -'sd4:   LUT_out = -'sd67;
+    -'sd3:   LUT_out = -'sd74;
+    -'sd2:   LUT_out = -'sd82;
+    -'sd1:   LUT_out = -'sd90;
+     'sd0:   LUT_out =  'sd0;
+     'sd1:   LUT_out =  'sd90;
+     'sd2:   LUT_out =  'sd82;
+     'sd3:   LUT_out =  'sd74;
+     'sd4:   LUT_out =  'sd67;
+     'sd5:   LUT_out =  'sd61;
+     'sd6:   LUT_out =  'sd55;
+     'sd7:   LUT_out =  'sd50;
+     'sd8:   LUT_out =  'sd45;
+     'sd9:   LUT_out =  'sd41;
+     'sd10:  LUT_out =  'sd37;
+     'sd11:  LUT_out =  'sd33;
+     'sd12:  LUT_out =  'sd30;
+     'sd13:  LUT_out =  'sd27;
+     'sd14:  LUT_out =  'sd25;
+     'sd15:  LUT_out =  'sd22;
+    default: LUT_out =  'sd0;
+endcase
+
+</code></pre>
+<p>
+Now, if we look closely, you will notice that the STDP LUT memory weight change values are of same magnitude with opposite signs for positive and negative timing difference. So we can come up with a smart solution by taking the advantage of this fact ! How about we reduce the priority encoder size by only generating the timing difference absolute value and take out the sign flag ? Accordingly, we can only keep the magnitudes of the STDP weight changes inside the LUT and use the sign flag as a control bit to dictate the adder whether to add (potentiation) or subtract (depression) those values from current weight inside the dual port weight RAM. This can result into a fewer resource usage and as a result, shorter critical path delay. The new diagram can look as the following :
+  </p>
+  
+
+    <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/Optimized_STDP_LE_PL_diagram.png" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/Optimized_STDP_LE_PL_diagram.png" 
+       alt="Optimized STDP Learning Engine - PL Diagram" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 20px;">
+</a>
+          
+    <p>Below is the simplified SystemVerilog code for the optimized priority encoder and signed flag logic:</p>
+
+          <pre><code>
+logic [15:0] data_reg;
+
+always_ff @(posedge clk) begin
+    if (rst) begin
+        data_reg   &lt;= 16'b0;
+        SignedFlag &lt;= 0; // Reset SignedFlag on reset
+    end else begin
+        if (PostSynapticNeuron[15] == 1) begin
+            data_reg   &lt;= PreSynapticNeuron;
+            SignedFlag &lt;= 0; // PostSynapticNeuron is active
+        end else if (PreSynapticNeuron[15] == 1) begin
+            data_reg   &lt;= PostSynapticNeuron;
+            SignedFlag &lt;= 1; // PreSynapticNeuron is active
+        end 
+    end
+end
+
+always_comb begin
+    unique casez(data_reg)
+        16'b1???????????????: TimingDifference = 4'd0;  // 0
+        16'b01??????????????: TimingDifference = 4'd1;  // 1
+        16'b001?????????????: TimingDifference = 4'd2;  // 2
+        16'b0001????????????: TimingDifference = 4'd3;  // 3
+        16'b00001???????????: TimingDifference = 4'd4;  // 4
+        16'b000001??????????: TimingDifference = 4'd5;  // 5
+        16'b0000001?????????: TimingDifference = 4'd6;  // 6
+        16'b00000001????????: TimingDifference = 4'd7;  // 7
+        16'b000000001???????: TimingDifference = 4'd8;  // 8
+        16'b0000000001??????: TimingDifference = 4'd9;  // 9
+        16'b00000000001?????: TimingDifference = 4'd10; // 10
+        16'b000000000001????: TimingDifference = 4'd11; // 11
+        16'b0000000000001???: TimingDifference = 4'd12; // 12
+        16'b00000000000001??: TimingDifference = 4'd13; // 13
+        16'b000000000000001?: TimingDifference = 4'd14; // 14
+        16'b0000000000000001: TimingDifference = 4'd15; // 15
+        default:              TimingDifference = 4'd0;  // Default case
+    endcase 
+end
+</code></pre>
+
+<p>The STDP LUT memory can now be reduced to 16 entries only for the timing difference magnitudes ranging from 0 to +15 instead of previously used 32 entries : </p>          
+
+          <pre><code>
+always_comb begin
+    unique case (potDepIndex)
+        4'd0:  potDepValue = 'sd0;    
+        4'd1:  potDepValue = 'sd90;    
+        4'd2:  potDepValue = 'sd82;    
+        4'd3:  potDepValue = 'sd74;    
+        4'd4:  potDepValue = 'sd67;    
+        4'd5:  potDepValue = 'sd61;    
+        4'd6:  potDepValue = 'sd55;    
+        4'd7:  potDepValue = 'sd50;    
+        4'd8:  potDepValue = 'sd45;    
+        4'd9:  potDepValue = 'sd41;    
+        4'd10: potDepValue = 'sd37;    
+        4'd11: potDepValue = 'sd33;    
+        4'd12: potDepValue = 'sd30;    
+        4'd13: potDepValue = 'sd27;    
+        4'd14: potDepValue = 'sd25;    
+        4'd15: potDepValue = 'sd22;    
+        default: potDepValue = 'sd0;    
+    endcase
+end
+</code></pre>
+
+<p>Now, we have reduced the priority encoder size !! Let us see if the maximum critical path has been reduced ! Below is the screenshot of the delay summary of setup time of the optimized learning engine from Vivado : </p>
+
+          <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/critical_opt_delay_scr.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/critical_opt_delay_scr.jpg" 
+       alt="Critical Path Optimized Delay Screenshot" 
+       style="width: 100%; max-width: 600px; display: block; margin-bottom: 20px; margin-top: 20px;">
+</a>
+
+          <p> We can see the maximum delay has been reduced to <b>4.801ns from 5.393ns !!</b> That should definitely improve the \(F_{max}\) ! Let's see what Vivado says </p>
+
+          <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/opt_timing_summary.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/opt_timing_summary.jpg" 
+       alt="Optimized Timing Summary" 
+       style="width: 100%; max-width: 600px; display: block; margin-top: 20px; margin-bottom: 20px;">
+</a>
+
+          <p> Taking the setup WNS value from here,  \(F_{\text{max}} \approx \frac{1000}{T_{\text{clock}} - \text{WNS_Setup}}\)=205.34 MHz. <b>Congratulations !! We have achieved improvement of performance from 187.23 MHz to 205.34 MHz. </b> </p>
+
+  
+  <h2>Area Optimization</h2>
+    <p> Since we reduced the size of both the priority encoder and the STDP LUT, let us see the impact from Vivado utilization report for the optimized learning engine : </p>
+
+          <a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/opt_util_rep.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/opt_util_rep.jpg" 
+       alt="Optimized Utilization Report" 
+       style="width: 100%; max-width: 600px; display: block; margin-top: 20px; margin-bottom: 20px;">
+</a>
+
+          <p> We can see the resource usage reduced to only <b>141 LUTs from 179 and to 341 Registers from 347 !!</b> Certainly a signficant percentage of resource savings !! Thus we have also achieved Area optimization !!</p>
+
+  <h2>Power Optimization</h2>
+
+  <p> The savings in resources will also result into reduced power consumption as shown by the Vivado power report below : </p>
+
+<a href="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/opt_pow_report.jpg" target="_blank">
+  <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/files/veriloga/veriloga_day01/opt_pow_report.jpg" 
+       alt="Optimized Power Report" 
+       style="width: 100%; max-width: 600px; display: block; margin-top: 20px; margin-bottom: 20px;">
+</a>
+
+        <p> We can see the total power consumption has reduced to <b> 127 mw from 129 mw </b> due to reduction in dynamic power usage. Thus, it confirms our achievent in power optimization. </p>
+
+  <h1> Congratulations !! We achieved PPA (Performance, Power and Area) optimization !! </h1>
+
+  
+    <p>Stay tuned for the next post, where we’ll delve deeper how we can achieve PPA optimization of the same learning engine RTL in ASIC design using legacy EDA tools !! Happy coding !!</p>
+          
+<!--     <h3>Tips for Writing Verilog-A Code</h3>
+    <p>As you start your journey, keep these tips in mind:</p>
+    <ul>
+        <li><strong>Comment generously:</strong> Your future self will thank you!</li>
+        <li><strong>Modularize:</strong> Break your code into smaller, reusable modules for clarity.</li>
+        <li><strong>Test frequently:</strong> Validate your models early to catch errors before they snowball.</li>
+    </ul>
+    
+    <h2>Conclusion</h2>
+    <p>Verilog-A is not just a tool; it's a gateway to exploring the rich landscape of analog design. With its intuitive syntax and powerful capabilities, you'll find yourself crafting intricate models that bring your ideas to life. So, grab your virtual toolkit and start your Verilog-A adventure today!</p>
+    
+    <p>Stay tuned for the next post, where we’ll delve deeper into resistor design in Verilog-A and its simulation. Until then, happy coding!</p>
+</article>
+ -->
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const WORDS_PER_MIN = 200;
+    const contentElem = document.getElementById("blog-content");
+    if (contentElem) {
+      const text = contentElem.innerText || "";
+      const wordCount = text.trim().split(/\s+/).length;
+      const timeToRead = Math.max(1, Math.ceil(wordCount / WORDS_PER_MIN));
+      const rt = document.getElementById("read-time");
+      if (rt) {
+        rt.innerText = timeToRead + (timeToRead === 1 ? " min read" : " mins read");
+      }
+    }
+  });
+</script>
+  
+</article>
