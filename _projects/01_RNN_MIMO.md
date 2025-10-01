@@ -1,5 +1,5 @@
 ---
-title: "An efficient recurrent neural network (RNN) inference chip design for MIMO OFDM symbol detection"
+title: "RTL integration of Ethernet-MAC IP interface with RNN inference chip in VC-707 FPGA for OFDM symbol detection"
 description: "This design presents an energy efficient ANN accelerator RTL design which deploys MAC-tanh operations leveraging DSP48E1 IP in Virtex VC-707 FPGA for MIMO OFDM symbol detection"
 github: "https://github.com/muhammadfarhan720/RNN-MIMO-Ethernet-accelerator"
 layout: single
