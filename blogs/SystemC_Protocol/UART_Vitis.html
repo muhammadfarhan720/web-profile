@@ -1,0 +1,312 @@
+---
+layout: archive
+title: "Designing RTL based Drivers for UART Communication"
+---
+<p>Written by <a href="https://shreyadatir30.github.io/" target="_blank">Shreya Datir</a>, in collaboration with 
+<a href= "https://muhammadfarhan720.github.io/web-profile/" target="_blank">Muhammad Farhan Azmine</a></p>
+
+
+<article class="blog-post">
+  <p>Posted on: September 12, 2025</p>
+  <p id="read-time" style="font-style: italic; color: gray;"></p>
+
+  <div id="blog-content">
+  
+<h2>1. Introduction</h2>
+
+<p>
+The Universal Asynchronous Receiver/Transmitter (UART) is a simple yet powerful serial communication protocol that has been around for decades. It enables point-to-point data transfer using just two main lines, transmit (TX) and receive (RX). It is asynchronous, meaning that it doesn’t have a shared clock signal. It still continues to be widely used in microcontrollers, FPGAs, industrial equipment, despite the emergence of faster and more complex protocols like SPI, or I2C, because of its simplicity, low hardware requirements, and proven reliability.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/device1_device2.png"
+     alt="UART communication diagram"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+<em>Photo from
+<a href="https://vanhunteradams.com/Protocols/UART/UART.html" target="_blank">here</a>
+</em>
+</p>
+
+<p>
+The image above shows a UART communication setup between two devices. In a real-world scenario, Device 1 could be a PC, microcontroller or another FPGA sending data to Device 2, which processes the data and sends a response back.
+In this project, we are only designing UART logic for Device 2. Device 1 will not be implemented on hardware, instead its behavior will be generated from a testbench in simulation. The testbench will send bytes of data to Device 2. Device 2 will accept the data and send back the processed data to the testbench.
+In this post, we will see how the UART logic can be designed using a simple finite-state machine (FSM). The data transmission follows a well-defined sequence: waiting in the idle state, detecting a start bit, shifting in or out data bits, verifying the stop bit, and returning to idle. By defining each state and its transitions clearly, an FSM ensures predictable timing, clean phase changes, and the ability to handle error conditions like invalid start bits or framing errors in a structured manner.
+</p><h2>Part 2: PS–PL Integration (Vivado Setup)</h2>
+
+<p>
+In the previous post, we designed a UART using FSMs, verified it in simulation, and looked at two ways to test it on hardware - an external USB–UART dongle and the PS–PL approach. While the external dongle method works, Zynq boards give us a more powerful option: using the Processing System (PS) as a built-in testbench for our RTL logic in the Programmable Logic (PL). The PS–PL integration is useful because:
+</p>
+
+<ul>
+    <li>It removes the need for external adapters or cables.</li>
+    <li>The CPU can send data directly into the UART RTL and read back results.</li>
+    <li>We can write flexible bare-metal C programs for testing.</li>
+    <li>It allows us to debug more easily by printing logs from the PS while interacting with our PL design.</li>
+</ul>
+
+<p>
+This flow is not only convenient for on-board testing but also reflects how real Zynq projects combine software and hardware.
+</p>
+
+<p>
+In this post, we’ll walk through the steps needed to set up PS–PL integration in Vivado:
+</p>
+
+<hr>
+
+<h3>PS Configuration in Vivado</h3>
+
+<p>
+The first step is configuring the Zynq Processing System (PS) in Vivado. Inside the Zynq PS block, we can enable peripherals such as UART0 and UART1.
+</p>
+
+<ul>
+    <li><strong>MIO (Multiplexed I/O):</strong> maps a PS peripheral directly to physical package pins on the Zynq, e.g., to connect to a USB cable or external device.</li>
+    <li><strong>EMIO (Extended MIO):</strong> routes signals internally into the PL, so the custom RTL logic can use them.</li>
+</ul>
+
+<p>For our setup:</p>
+
+<ul>
+    <li>PS-UART1 is mapped via MIO so it can print to the console.</li>
+    <li>PS-UART0 is routed via EMIO into the PL, where it connects to our UART RTL.</li>
+</ul>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/Vivado_bd.png"
+     alt="Vivado block diagram showing PS-UART0 routed via EMIO into PL and PS-UART1 via MIO to console"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><em>Vivado block diagram with PS UART0 → EMIO → PL and PS UART1 → MIO</em></p>
+
+<p>
+Once this block diagram is complete, we export the hardware from Vivado, generating an .xsa file for use in Vitis.
+</p>
+
+<hr>
+
+<h3>Overall Flow of PS–PL Integration</h3>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/flow1.png"
+     alt="Overall PS–PL loop: PS app → UART0 (EMIO) → RX FSM → Inverter → TX FSM → back to PS; UART1 (MIO) used for console logs"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>The setup works as shown in the diagram above.</p>
+
+<ul>
+    <li>The PS Application running on the Zynq CPU uses PS-UART0, which is routed through EMIO into the PL fabric.</li>
+    <li>Inside the PL, the data first passes through the Receiver FSM, which reconstructs bytes from the serial stream.</li>
+    <li>The byte is then passed through a simple Inverter module (our demo transformation logic).</li>
+    <li>The transformed data is serialized again by the Transmitter FSM and sent back through PS-UART0.</li>
+    <li>Finally, the PS Application receives this processed data, where it can be checked and logged to the console.</li>
+</ul>
+
+<p>
+Meanwhile, PS-UART1 (MIO) is used separately for console I/O, so all xil_printf() messages from the application are displayed on the PC terminal.
+</p>
+
+<p>
+This flow lets the PS act as a built-in testbench: it generates test data, sends it through the PL UART RTL, and verifies the returned results.
+</p>
+
+<hr>
+
+<h3>Building the block diagram in Vivado</h3>
+
+<p><strong>Step 1:</strong> Once the RTL design is ready and verified with a testbench, create a new Block Design from the Flow Navigator.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step1.png"
+     alt="Vivado IP Integrator: Create New Block Design screen"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 2:</strong> Add the Zynq Processing System to the Block Diagram.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step2.png"
+     alt="Vivado: Zynq Processing System block added to the diagram"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step3.png"
+     alt="Vivado: Zynq Processing System block added to the diagram"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 3:</strong> Select the Zynq PS block and enable UART0 and UART1 from the Peripheral I/O Pins section.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step4.png"
+     alt="Vivado: Zynq PS configuration—Peripheral I/O Pins view enabling UART0 and UART1"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 4:</strong> Ensure that UART0 is set to EMIO and UART1 is set to MIO.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step4_1.png"
+     alt="Vivado: Setting UART0 to EMIO and UART1 to MIO in Zynq PS"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 5:</strong> In the Design Sources window, right-click on your top module and add it to the Block Design.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step5.png"
+     alt="Vivado: Adding existing RTL top module (uart_top) to the Block Design"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 6:</strong> Add a Processor System Reset block to the design. This block generates properly synchronized reset signals for the logic in the PL, ensuring that all modules start in a known state when the system powers up or resets.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step6.png"
+     alt="Vivado: Adding Processor System Reset IP to the design"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 7:</strong> Connect the blocks together in the Block Design. Specifically:</p>
+
+<ul>
+    <li>Connect the FCLK_CLK0 output from the Zynq PS to the clk input of your uart_top module and the Processor System Reset block.</li>
+    <li>Connect the peripheral_aresetn output from the Processor System Reset block to the reset input of your uart_top module.</li>
+    <li>Link the UART0 EMIO signals from the PS to the RX/TX ports of your uart_top.</li>
+</ul>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step7.png"
+     alt="Vivado: Connecting FCLK_CLK0, peripheral_aresetn, and UART0 EMIO to uart_top RX/TX"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 8:</strong> Validate the design to ensure that all connections are correct and that there are no errors or missing links in the block diagram.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step8.png"
+     alt="Vivado: Validate Design—no errors/missing connections"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 9:</strong> In the Sources window, right-click on the block design and select Create HDL Wrapper to generate a top-level file for synthesis and implementation.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step9.png"
+     alt="Vivado: Create HDL Wrapper dialog for the block design"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+The HDL wrapper is a top-level entity required by design tools. It is necessary because the block design cannot be synthesized directly.
+</p>
+
+<p><strong>Step 10:</strong> Let Vivado manage wrapper and auto-update and click OK.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step10.png"
+     alt="Vivado: design_wrapper.v generated and set as Top in Sources"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+This will create a wrapper.v file and set it as the top module automatically.
+</p>
+
+<p><strong>Step 11:</strong> The file design_wrapper.v is generated. Vivado usually sets this as the top automatically, but if not, you can right-click on it in the Sources window and select Set as Top manually.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step11.png"
+     alt="Vivado: Generate Block Design output products dialog/options"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 12:</strong> Generating the Block Design</p>
+
+<ul>
+    <li>In the Flow Navigator window, click Generate Block Design under IP Integrator.</li>
+    <li>Set the synthesis option to Global.</li>
+    <li>Click Generate to build the required output products.</li>
+</ul>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step12.png"
+     alt="Vivado: Generate output products"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+At this stage, Vivado automatically generates all the necessary files for the design. We don’t need to manually create constraints for the Zynq Processing System. Vivado generates an XDC file for it as part of this step.
+</p>
+
+<p><em>Reference: AMD Zynq Embedded Design Tutorial</em></p>
+
+<p>-Once the process is complete, click OK.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step12_2.png"
+     alt="Vivado: Generate output products"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 13:</strong> Run Synthesis and Implementation in Vivado, and verify that both processes complete successfully without errors.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step13.png"
+     alt="Vivado: Synthesis and Implementation completed successfully"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 14:</strong> From the Flow Navigator, click Generate Bitstream and confirm that the process completes successfully without errors.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step14.png"
+     alt="Vivado: Generate Bitstream completed successfully"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 15:</strong> Exporting the hardware.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step15.png"
+     alt="Vivado: Export Hardware dialog with Include Bitstream checked"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+In the dialog box, make sure to check <em>Include Bitstream</em> so the hardware description contains both the design and the generated bitstream.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step15_2.png"
+     alt="Output: .xsa file generated for Vitis handoff"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<ul>
+    <li>Choose an output location (by default, Vivado will place it in your project’s folder).</li>
+    <li>Click Finish to generate the .xsa file.</li>
+</ul>
+
+<p>
+This .xsa (Xilinx Support Archive) file is what you’ll import into Vitis to create your software platform and bare-metal application.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step15_3.png"
+     alt="Output: .xsa file generated for Vitis handoff"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<hr>
+
+<h3>Code &amp; Resources</h3>
+
+<p>
+All source files, Vivado project (.xpr), and testbench code used in this post are available here:
+</p>
+
+<p>
+<a href="https://github.com/shreyadatir30/UART-Communication-System" target="_blank">
+UART-Communication-System GitHub Repository
+</a>
+</p>
+
+<p>
+You can download the full Vivado project as a zip and open it directly in Vivado
+(<code>File → Open Project</code> → select <code>.xpr</code>).
+</p>
+
+<p>
+In the next part, we’ll take this exported hardware into Vitis, set up the BSP, and build a bare-metal application to test the UART design.
+</p>
+
+
+
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const WORDS_PER_MIN = 200;
+    const contentElem = document.getElementById("blog-content");
+    if (contentElem) {
+      const text = contentElem.innerText || "";
+      const wordCount = text.trim().split(/\s+/).length;
+      const timeToRead = Math.max(1, Math.ceil(wordCount / WORDS_PER_MIN));
+      const rt = document.getElementById("read-time");
+      if (rt) {
+        rt.innerText = timeToRead + (timeToRead === 1 ? " min read" : " mins read");
+      }
+    }
+  });
+</script>
+  
+</article>
