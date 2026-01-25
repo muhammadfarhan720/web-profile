@@ -12,276 +12,248 @@ title: "Designing RTL based Drivers for UART Communication"
 
   <div id="blog-content">
   
-<h2>1. Introduction</h2>
+<h2>PART 3: PS–PL Integration (Vitis Setup + Testing)</h2>
 
 <p>
-The Universal Asynchronous Receiver/Transmitter (UART) is a simple yet powerful serial communication protocol that has been around for decades. It enables point-to-point data transfer using just two main lines, transmit (TX) and receive (RX). It is asynchronous, meaning that it doesn’t have a shared clock signal. It still continues to be widely used in microcontrollers, FPGAs, industrial equipment, despite the emergence of faster and more complex protocols like SPI, or I2C, because of its simplicity, low hardware requirements, and proven reliability.
-</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/device1_device2.png"
-     alt="UART communication diagram"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p>
-<em>Photo from
-<a href="https://vanhunteradams.com/Protocols/UART/UART.html" target="_blank">here</a>
-</em>
-</p>
-
-<p>
-The image above shows a UART communication setup between two devices. In a real-world scenario, Device 1 could be a PC, microcontroller or another FPGA sending data to Device 2, which processes the data and sends a response back.
-In this project, we are only designing UART logic for Device 2. Device 1 will not be implemented on hardware, instead its behavior will be generated from a testbench in simulation. The testbench will send bytes of data to Device 2. Device 2 will accept the data and send back the processed data to the testbench.
-In this post, we will see how the UART logic can be designed using a simple finite-state machine (FSM). The data transmission follows a well-defined sequence: waiting in the idle state, detecting a start bit, shifting in or out data bits, verifying the stop bit, and returning to idle. By defining each state and its transitions clearly, an FSM ensures predictable timing, clean phase changes, and the ability to handle error conditions like invalid start bits or framing errors in a structured manner.
-</p><h2>Part 2: PS–PL Integration (Vivado Setup)</h2>
-
-<p>
-In the previous post, we designed a UART using FSMs, verified it in simulation, and looked at two ways to test it on hardware - an external USB–UART dongle and the PS–PL approach. While the external dongle method works, Zynq boards give us a more powerful option: using the Processing System (PS) as a built-in testbench for our RTL logic in the Programmable Logic (PL). The PS–PL integration is useful because:
-</p>
-
-<ul>
-    <li>It removes the need for external adapters or cables.</li>
-    <li>The CPU can send data directly into the UART RTL and read back results.</li>
-    <li>We can write flexible bare-metal C programs for testing.</li>
-    <li>It allows us to debug more easily by printing logs from the PS while interacting with our PL design.</li>
-</ul>
-
-<p>
-This flow is not only convenient for on-board testing but also reflects how real Zynq projects combine software and hardware.
-</p>
-
-<p>
-In this post, we’ll walk through the steps needed to set up PS–PL integration in Vivado:
+In Part 2, we walked through setting up the Zynq Processing System in Vivado, enabling UART0 (EMIO) and UART1 (MIO), connecting our custom UART RTL in the PL, and generating the bitstream. We wrapped up by exporting the hardware to an .xsa file which will bridge our Vivado design into Vitis.<br>
+Now, in this post, we’ll use that .xsa file to set up a platform in Vitis, configure the BSP, and build a bare-metal application that tests our UART design directly on the board.
 </p>
 
 <hr>
 
-<h3>PS Configuration in Vivado</h3>
+<h2>BSP &amp; Bare-Metal Project Setup (Vitis)</h2>
 
 <p>
-The first step is configuring the Zynq Processing System (PS) in Vivado. Inside the Zynq PS block, we can enable peripherals such as UART0 and UART1.
+The first step is to create a Vitis platform project using the exported hardware file. Vitis will automatically generate a Board Support Package (BSP), which includes the drivers and libraries for the PS peripherals.<br>
+One important BSP setting is STDIN/STDOUT, which tells Vitis which UART to use for console I/O functions like xil_printf().
 </p>
 
 <ul>
-    <li><strong>MIO (Multiplexed I/O):</strong> maps a PS peripheral directly to physical package pins on the Zynq, e.g., to connect to a USB cable or external device.</li>
-    <li><strong>EMIO (Extended MIO):</strong> routes signals internally into the PL, so the custom RTL logic can use them.</li>
+  <li>We map STDOUT to PS-UART1 (MIO) so that debug prints appear on the PC terminal.</li>
+  <li>At the same time, PS-UART0 (EMIO) is connected internally to our RTL UART in the PL for loopback testing.</li>
 </ul>
-
-<p>For our setup:</p>
-
-<ul>
-    <li>PS-UART1 is mapped via MIO so it can print to the console.</li>
-    <li>PS-UART0 is routed via EMIO into the PL, where it connects to our UART RTL.</li>
-</ul>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/Vivado_bd.png"
-     alt="Vivado block diagram showing PS-UART0 routed via EMIO into PL and PS-UART1 via MIO to console"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><em>Vivado block diagram with PS UART0 → EMIO → PL and PS UART1 → MIO</em></p>
-
-<p>
-Once this block diagram is complete, we export the hardware from Vivado, generating an .xsa file for use in Vitis.
-</p>
 
 <hr>
 
-<h3>Overall Flow of PS–PL Integration</h3>
+<h3>Step 1: Launch the Vitis Unified IDE and select (or create) a workspace directory where your project files will be stored.</h3>
 
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/flow1.png"
-     alt="Overall PS–PL loop: PS app → UART0 (EMIO) → RX FSM → Inverter → TX FSM → back to PS; UART1 (MIO) used for console logs"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p>The setup works as shown in the diagram above.</p>
-
-<ul>
-    <li>The PS Application running on the Zynq CPU uses PS-UART0, which is routed through EMIO into the PL fabric.</li>
-    <li>Inside the PL, the data first passes through the Receiver FSM, which reconstructs bytes from the serial stream.</li>
-    <li>The byte is then passed through a simple Inverter module (our demo transformation logic).</li>
-    <li>The transformed data is serialized again by the Transmitter FSM and sent back through PS-UART0.</li>
-    <li>Finally, the PS Application receives this processed data, where it can be checked and logged to the console.</li>
-</ul>
-
-<p>
-Meanwhile, PS-UART1 (MIO) is used separately for console I/O, so all xil_printf() messages from the application are displayed on the PC terminal.
-</p>
-
-<p>
-This flow lets the PS act as a built-in testbench: it generates test data, sends it through the PL UART RTL, and verifies the returned results.
-</p>
-
-<hr>
-
-<h3>Building the block diagram in Vivado</h3>
-
-<p><strong>Step 1:</strong> Once the RTL design is ready and verified with a testbench, create a new Block Design from the Flow Navigator.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step1.png"
-     alt="Vivado IP Integrator: Create New Block Design screen"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 2:</strong> Add the Zynq Processing System to the Block Diagram.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step2.png"
-     alt="Vivado: Zynq Processing System block added to the diagram"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step3.png"
-     alt="Vivado: Zynq Processing System block added to the diagram"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 3:</strong> Select the Zynq PS block and enable UART0 and UART1 from the Peripheral I/O Pins section.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step4.png"
-     alt="Vivado: Zynq PS configuration—Peripheral I/O Pins view enabling UART0 and UART1"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 4:</strong> Ensure that UART0 is set to EMIO and UART1 is set to MIO.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step4_1.png"
-     alt="Vivado: Setting UART0 to EMIO and UART1 to MIO in Zynq PS"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 5:</strong> In the Design Sources window, right-click on your top module and add it to the Block Design.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step5.png"
-     alt="Vivado: Adding existing RTL top module (uart_top) to the Block Design"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 6:</strong> Add a Processor System Reset block to the design. This block generates properly synchronized reset signals for the logic in the PL, ensuring that all modules start in a known state when the system powers up or resets.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step6.png"
-     alt="Vivado: Adding Processor System Reset IP to the design"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 7:</strong> Connect the blocks together in the Block Design. Specifically:</p>
-
-<ul>
-    <li>Connect the FCLK_CLK0 output from the Zynq PS to the clk input of your uart_top module and the Processor System Reset block.</li>
-    <li>Connect the peripheral_aresetn output from the Processor System Reset block to the reset input of your uart_top module.</li>
-    <li>Link the UART0 EMIO signals from the PS to the RX/TX ports of your uart_top.</li>
-</ul>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step7.png"
-     alt="Vivado: Connecting FCLK_CLK0, peripheral_aresetn, and UART0 EMIO to uart_top RX/TX"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 8:</strong> Validate the design to ensure that all connections are correct and that there are no errors or missing links in the block diagram.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step8.png"
-     alt="Vivado: Validate Design—no errors/missing connections"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 9:</strong> In the Sources window, right-click on the block design and select Create HDL Wrapper to generate a top-level file for synthesis and implementation.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step9.png"
-     alt="Vivado: Create HDL Wrapper dialog for the block design"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p>
-The HDL wrapper is a top-level entity required by design tools. It is necessary because the block design cannot be synthesized directly.
-</p>
-
-<p><strong>Step 10:</strong> Let Vivado manage wrapper and auto-update and click OK.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step10.png"
-     alt="Vivado: design_wrapper.v generated and set as Top in Sources"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p>
-This will create a wrapper.v file and set it as the top module automatically.
-</p>
-
-<p><strong>Step 11:</strong> The file design_wrapper.v is generated. Vivado usually sets this as the top automatically, but if not, you can right-click on it in the Sources window and select Set as Top manually.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step11.png"
-     alt="Vivado: Generate Block Design output products dialog/options"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 12:</strong> Generating the Block Design</p>
-
-<ul>
-    <li>In the Flow Navigator window, click Generate Block Design under IP Integrator.</li>
-    <li>Set the synthesis option to Global.</li>
-    <li>Click Generate to build the required output products.</li>
-</ul>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step12.png"
-     alt="Vivado: Generate output products"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p>
-At this stage, Vivado automatically generates all the necessary files for the design. We don’t need to manually create constraints for the Zynq Processing System. Vivado generates an XDC file for it as part of this step.
-</p>
-
-<p><em>Reference: AMD Zynq Embedded Design Tutorial</em></p>
-
-<p>-Once the process is complete, click OK.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step12_2.png"
-     alt="Vivado: Generate output products"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 13:</strong> Run Synthesis and Implementation in Vivado, and verify that both processes complete successfully without errors.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step13.png"
-     alt="Vivado: Synthesis and Implementation completed successfully"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 14:</strong> From the Flow Navigator, click Generate Bitstream and confirm that the process completes successfully without errors.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step14.png"
-     alt="Vivado: Generate Bitstream completed successfully"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p><strong>Step 15:</strong> Exporting the hardware.</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step15.png"
-     alt="Vivado: Export Hardware dialog with Include Bitstream checked"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p>
-In the dialog box, make sure to check <em>Include Bitstream</em> so the hardware description contains both the design and the generated bitstream.
-</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step15_2.png"
-     alt="Output: .xsa file generated for Vitis handoff"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<ul>
-    <li>Choose an output location (by default, Vivado will place it in your project’s folder).</li>
-    <li>Click Finish to generate the .xsa file.</li>
-</ul>
-
-<p>
-This .xsa (Xilinx Support Archive) file is what you’ll import into Vitis to create your software platform and bare-metal application.
-</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step15_3.png"
-     alt="Output: .xsa file generated for Vitis handoff"
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis1.png"
+     alt="Launching the Vitis Unified IDE and selecting workspace"
      style="max-width:100%; display:block; margin:20px auto;">
 
 <hr>
 
-<h3>Code &amp; Resources</h3>
+<h3>Step 2: From the menu bar, go to File → New Component and create a new Platform Component.</h3>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis2.png"
+     alt="Vitis menu showing New Component → Platform Component"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>Choose a name and specify a location</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis3.png"
+     alt="Dialog for naming and locating the new Platform Component"
+     style="max-width:100%; display:block; margin:20px auto;">
 
 <p>
-All source files, Vivado project (.xpr), and testbench code used in this post are available here:
+On the Select Platform Creation Flow page, choose Hardware Design. Click Browse to locate your exported .xsa file and then click OK.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis4.png"
+     alt="Select Hardware Design and browse for .xsa file in Vitis"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+Once the XSA file is loaded, Vitis automatically generates the System Device Tree (SDT). The SDT metadata is then used to populate the available processor list. From this list, select standalone as the operating system and choose the processor ps7_cortexa9_0.<br>
+Leave the Generate Boot Artifacts option enabled, as shown in the figure below and click Next.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis5.png"
+     alt="System Device Tree populated, select standalone OS and processor ps7_cortexa9_0"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>Review and click Finish.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis6.png"
+     alt="Review and finish Platform Component creation in Vitis"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<hr>
+
+<h3>Step 3: Once the platform project is created, go to the Vitis Components view.</h3>
+
+<p>
+Double-click on the platform to open it and display the Platform View, as shown in the figure below.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis7.png"
+     alt="Vitis Components view showing the Platform View"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<hr>
+
+<h3>Step 4: Configure STDIN/STDOUT and build the platform</h3>
+
+<p>
+In the Vitis Components view, expand platform → Settings → vitis-comp.json. Within vitis-comp.json, expand the hierarchy under OS: standalone and check the configuration for standalone_stdin and standalone_stdout. Make sure they are mapped to the UART configured as MIO in the design (UART1 in this case).<br>
+Next, Build the platform.
+</p>
+
+<p>As the project builds, we can see the output in the Console window.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis8.png"
+     alt="Vitis console output during platform build"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<hr>
+
+<h3>Step 5: Creating an Application Component</h3>
+
+<p>
+There are two ways to create an Application template in the Vitis Unified IDE. You can either use the Examples icon in the activity bar on the left side of the IDE, or go to File → New Component → Application. The second method creates an Empty Application template. [Reference]<br>
+Here, we’ll create the application using an Example: go to File → New Example.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis9.png"
+     alt="Vitis menu for creating a new Example Application"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+Select a suitable template and click Create Application Component from Template. For this tutorial, we’ll use the Hello World template.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis10.png"
+     alt="Hello World application template creation in Vitis"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+In the Create Application Component wizard, click Next and choose the platform created in the previous step.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis11.png"
+     alt="Selecting platform for application in Vitis"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+This will use the domain generated in the platform by default. Click Next and Finish. The application project will be created, as shown below.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis12.png"
+     alt="Hello World application project created"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+In the Vitis Explorer pane on the left, under Sources, you can view and edit the source code. Here, we added the UART code (explained later). Once the code is ready, build the application.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis13.png"
+     alt="Build application in Vitis"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<hr>
+
+<h3>Step 6: Setting up the board connection</h3>
+
+<ol>
+  <li>Connect the power cable to the board.</li>
+  <li>Connect the USB UART cable to J17.</li>
+  <li>Connect the USB JTAG cable.</li>
+</ol>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/connections.png"
+     alt="Board setup with power, USB UART, and JTAG connections"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/main_setup.jpg"
+     alt="Board setup overview"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+Once your board is connected and powered, your computer should detect the USB-UART adapter automatically. If it doesn’t, you'll need to install the correct driver. For most adapters based on the Silicon Labs CP210x bridge, you can find the official Virtual COM Port (VCP) drivers on Silicon Labs' site:<br>
+<a href="https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads">
+Silicon Labs CP210x USB-to-UART Bridge VCP Drivers
+</a>.
 </p>
 
 <p>
-<a href="https://github.com/shreyadatir30/UART-Communication-System" target="_blank">
-UART-Communication-System GitHub Repository
-</a>
+This page provides downloads for Windows, macOS, Linux, and Android. After downloading, install the driver (e.g. CP210xVCPInstaller_x64.exe on Windows). Once installed, your operating system should expose a COM port (e.g., COM3 on Windows or /dev/ttyUSB0 on Linux), which your terminal program can then use.
+</p>
+
+<hr>
+
+<h3>Step 7: Open the serial monitor</h3>
+
+<p>
+You can use the built-in serial monitor in Vitis or an external tool like PuTTY. To open it in Vitis, go to the menu bar → Serial Monitor. If the option isn’t visible, enable it by turning on New Feature Preview in the settings, then activate the serial monitor feature from there.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis14.png"
+     alt="Vitis serial monitor connection setup"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+Once, the serial monitor is enabled, open it and choose the appropriate baud rate at the corrcet port.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/serial_monitor.png"
+     alt="Vitis serial monitor settings"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<hr>
+
+<h3>Step 8: Run the code and check the output in the serial monitor</h3>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis16.png"
+     alt="Vitis console showing loopback and inverted UART test results"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+Verify the loopback test messages, where each byte sent (e.g., 0x55, 0xAA) is echoed back by the UART RTL through EMIO. The console will display both the transmitted and received values along with a PASS message for each iteration, confirming correct operation.
 </p>
 
 <p>
-You can download the full Vivado project as a zip and open it directly in Vivado
-(<code>File → Open Project</code> → select <code>.xpr</code>).
+To further verify the integration, we also tested the design with the inverter logic in the PL. As shown in the console output below, each transmitted byte (0x55, 0xAA) is received back in its inverted form (~0x55 = 0xAA, ~0xAA = 0x55). The log confirms correct operation with the PASS (inverted) messages.
 </p>
 
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/vitis15.png"
+     alt="Vitis console showing inverted UART test results"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<hr>
+
+<h2>PS-UART Driver API</h2>
+
+<p>To talk to the RTL UART in C code, we use the Xilinx UART driver. The main functions are:</p>
+
+<ul>
+  <li><strong>XUartPs_CfgInitialize()</strong> – It takes in the hardware configuration (from the .xsa export) and prepares the driver for use. This step ensures the PS UART0 is properly linked to the correct base address in memory.</li>
+  <li><strong>XUartPs_SetBaudRate()</strong> – sets the PS UART baud rate. The baud must match the UART logic in the PL so both ends agree on bit timing.</li>
+  <li><strong>XUartPs_SendByte()</strong> – sends a byte out of the PS UART0. This function writes the byte into the TX register of the PS UART peripheral. In our setup, this byte is routed through EMIO into the PL.</li>
+  <li><strong>XUartPs_RecvByte()</strong> – reads a byte from the PS UART0. This function checks the RX register of the PS UART peripheral. In our setup, the data here is coming back from the PL after passing through the receiver FSM, inverter, and transmitter FSM.</li>
+</ul>
+
 <p>
-In the next part, we’ll take this exported hardware into Vitis, set up the BSP, and build a bare-metal application to test the UART design.
+These functions make it easy to control the UART directly from our bare-metal application. All xil_printf() statements in the code print through PS-UART1 (MIO), which shows up on the PC’s serial terminal. At the same time, PS-UART0 (EMIO) is driving data into the UART RTL inside the PL.
 </p>
+
+<hr>
+
+<h2>Building the Loopback Test Application</h2>
+
+<p>Our bare-metal loopback program follows a straightforward structure:</p>
+
+<ol>
+  <li>init_platform() – initialize hardware resources.</li>
+  <li>UART driver initialization.</li>
+  <li>Main loop:
+    <ul>
+      <li>Send a byte from the PS UART into the PL.</li>
+      <li>Receive the processed (inverted) byte back from the PL.</li>
+      <li>Print both values to the console.</li>
+    </ul>
+  </li>
+</ol>
+
 
 
 
