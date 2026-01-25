@@ -15,13 +15,7 @@ title: "Designing RTL based Drivers for UART Communication"
 <h2>1. Introduction</h2>
 
 <p>
-The Universal Asynchronous Receiver/Transmitter (UART) is a simple yet powerful serial
-communication protocol that has been around for decades. It enables point-to-point data
-transfer using just two main lines, transmit (TX) and receive (RX). It is asynchronous,
-meaning that it doesn’t have a shared clock signal. It still continues to be widely used
-in microcontrollers, FPGAs, industrial equipment, despite the emergence of faster and
-more complex protocols like SPI or I2C, because of its simplicity, low hardware
-requirements, and proven reliability.
+The Universal Asynchronous Receiver/Transmitter (UART) is a simple yet powerful serial communication protocol that has been around for decades. It enables point-to-point data transfer using just two main lines, transmit (TX) and receive (RX). It is asynchronous, meaning that it doesn’t have a shared clock signal. It still continues to be widely used in microcontrollers, FPGAs, industrial equipment, despite the emergence of faster and more complex protocols like SPI, or I2C, because of its simplicity, low hardware requirements, and proven reliability.
 </p>
 
 <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/device1_device2.png"
@@ -32,35 +26,26 @@ requirements, and proven reliability.
 </p>
 
 <p>
-The image above shows a UART communication setup between two devices. In a real-world
-scenario, Device 1 could be a PC, microcontroller or another FPGA sending data to Device 2,
-which processes the data and sends a response back.
+The image above shows a UART communication setup between two devices. In a real-world scenario, Device 1 could be a PC, microcontroller or another FPGA sending data to Device 2, which processes the data and sends a response back.
+In this project, we are only designing UART logic for Device 2. Device 1 will not be implemented on hardware, instead its behavior will be generated from a testbench in simulation. The testbench will send bytes of data to Device 2. Device 2 will accept the data and send back the processed data to the testbench.
 </p>
 
 <p>
-In this project, we are only designing UART logic for Device 2. Device 1 will not be
-implemented on hardware; instead, its behavior will be generated from a testbench in
-simulation. The testbench will send bytes of data to Device 2. Device 2 will accept the
-data and send back the processed data to the testbench.
+In this post, we will see how the UART logic can be designed using a simple finite-state machine (FSM). The data transmission follows a well-defined sequence: waiting in the idle state, detecting a start bit, shifting in or out data bits, verifying the stop bit, and returning to idle. By defining each state and its transitions clearly, an FSM ensures predictable timing, clean phase changes, and the ability to handle error conditions like invalid start bits or framing errors in a structured manner.
 </p>
 
 <p>
-In this post, we will see how the UART logic can be designed using a simple finite-state
-machine (FSM). The data transmission follows a well-defined sequence: waiting in the idle
-state, detecting a start bit, shifting in or out data bits, verifying the stop bit, and
-returning to idle.
+This post will begin by explaining UART signaling and timing fundamentals. It will then detail the design of both transmit (TX) and receive (RX) logic using FSMs, including the step-by-step state diagrams. Finally, it will show how to integrate these into a top-level module, test the design in simulation, and discuss considerations for implementing it on hardware.
 </p>
 
 <h2>2. Background: UART Essentials</h2>
 
 <p>
-UART communication is asynchronous, meaning the device 1 transmitter and the device 2
-receiver do not share a common clock signal. Each operates on its own clock, and both ends
-agree beforehand on a baud rate.
+UART communication is asynchronous, meaning the device 1 transmitter and the device 2 receiver do not share a common clock signal. Each of them operates on their separate clock and both ends agree beforehand on a baud rate which is the number of bits sent per second. Data is sent in a frame that starts with a start bit (logic low), followed by a fixed number of data bits (usually 8 and LSB first), an optional parity bit for error checking, and a stop bit (logic high) to signal the end of the frame. This structure allows UART to transfer data reliably over just two wires.
 </p>
 
 <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/frame_structure.png"
-     alt="UART frame structure">
+     alt="Frame Structure diagram">
 
 <p>
 <em>Photo from <a href="https://www.electronicwings.com/storage/PlatformSection/TopicContent/249/description/2_8051_Serial_Frame_Structure.png">here</a></em>
@@ -69,78 +54,61 @@ agree beforehand on a baud rate.
 <h3>Baud rate generation and clock-to-bit timing</h3>
 
 <p>
-The baud rate is the number of bits transmitted per second. Since UART does not send a
-clock signal, each side must generate its own timing internally.
+The baud rate is simply the number of signal changes (symbols) transmitted per second. In UART, one symbol corresponds to one bit, so the baud rate directly equals the number of bits sent per second.
+Since UART does not send a clock signal, each side must generate its own timing internally. A baud rate generator in the hardware divides the system clock to produce a timing reference that matches the agreed baud rate.
 </p>
 
 <p>
-Bit Period (seconds) = 1 / baud rate
+$$
+\text{Bit Period (seconds)} = \frac{1}{\text{baud rate}}
+$$
 </p>
 
 <p>
-Clock cycles per bit = System clock frequency / baud rate
+For example, at 9600 baud, each bit period is ~104 µs long.<br>
+In RTL design, we work with Clock Cycles instead of time. To calculate the number of clock cycles in one bit period, we use the equation below:
 </p>
-
-<h3>Common pitfalls</h3>
 
 <p>
-Sampling errors and metastability can degrade communication quality. Designers typically
-use oversampling and synchronizer flip-flops to minimize these risks.
+$$
+\text{Clock cycles per bit} = \frac{\text{System clock frequency}}{\text{baud rate}}
+$$
 </p>
-
-<h2>3. Designing the RX FSM</h2>
 
 <p>
-The RX FSM reconstructs a byte from the serialized RX line. It detects a start bit, samples
-each data bit at the midpoint of the bit period, checks the stop bit, and raises a
-data-valid pulse once a complete frame is received.
+For example, with a 100 MHz system clock and 115200 baud, the clock cycles per bit are 868. This means the UART logic must hold each bit steady for 868 clock cycles before moving to the next one. On the receive side, sampling is done at the midpoint of this window.
 </p>
 
-<h2>4. Designing the TX FSM</h2>
+<h3>Common pitfalls (sampling errors, metastability)</h3>
 
 <p>
-The TX FSM serializes data for transmission. It sends a start bit, data bits LSB-first,
-and a stop bit, holding each bit for a precise number of clock cycles derived from the
-baud rate.
+While UART is straightforward, certain issues can degrade communication quality. Sampling errors occur if the receiver samples too early or too late within a bit period, leading to incorrect data. Metastability can happen when an asynchronous signal is read too close to a clock edge, causing unpredictable logic levels. Designers typically use oversampling and synchronizer flip-flops to minimize these risks and ensure stable, reliable data capture.
 </p>
 
-<h2>5. Top-Level Integration</h2>
+<h2>3. Designing the RX (Receive) FSM</h2>
 
 <p>
-At the top level, the design integrates the RX and TX blocks around a shared
-clock-cycles-per-bit parameter.
+The purpose of the RX FSM is to reconstruct a byte of data from the serialized bits sent through the single RX line. The UART receiver watches the line for a falling edge that marks a start bit, then waits half a bit period to sample in the middle-where the signal is most stable. From there, it samples once per bit period to capture each data bit, least-significant first, rebuilding the byte one bit at a time. After the eighth bit, it expects a high stop bit to confirm a well-formed frame. To keep asynchronous input from glitching the logic, the design first passes the incoming line through a two-stage synchronizer before any decisions are made. When a complete, correctly timed frame is observed, the receiver raises a brief “data-valid” pulse and presents the assembled byte, then returns to idle to wait for the next start bit.
 </p>
 
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/top_module.png"
-     alt="Top module diagram">
-
-<h2>6. Verification: Testbench & Simulation</h2>
+<h2>4. Designing the TX (Transmit) FSM</h2>
 
 <p>
-A self-checking testbench generates UART frames, captures transmitted data, and compares
-it against expected values. Synchronization and mid-bit sampling ensure robust reception.
+The purpose of the TX FSM is to serialize data so it can be sent bit-by-bit through the single TX line back to Device 1 (the testbench). The UART transmitter works by following a clear sequence of steps to send a byte of data. It starts in an idle state with the output line resting high, waiting for a signal to begin transmission. Historically, this idle-high convention comes from telegraph systems, where keeping the line high helped verify that the line was intact.
 </p>
 
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/sim_waveform.png"
-     alt="Simulation waveform">
+<p>
+Once data is ready, it first sends a start bit (a low signal) to mark the beginning of the frame. Next, it sends each bit of the data, starting from the least significant bit, holding each one steady for a precise period based on the chosen baud rate. If we choose a baud rate of 192000, then this means that we need to send 192000 bits per second. To determine the number of clock cycles required to send one bit, we simply divide the system clock frequency by the baud rate. So, we can design a counter that counts up to that value before sending the next bit.
+</p>
+
+<p>
+After all the data bits are sent, it outputs a stop bit (a high signal) to signal the end of the frame. Finally, it returns to the idle state, ready to send the next byte. This step-by-step method ensures that every bit is sent with accurate timing, making the transmission reliable and easy to interpret on the receiving end.
+</p>
 
 <h2>7. On-Board Testing & Validation</h2>
 
-<h3>A) External USB-UART dongle</h3>
-
-<p>
-A USB-UART adapter connects the FPGA UART to a PC terminal for real-world testing.
-</p>
-
-<h3>B) On-chip CPU driven self-test</h3>
-
-<p>
-On Zynq platforms, the CPU can communicate with the UART RTL via EMIO, enabling full
-on-board validation without external hardware.
-</p>
-
 <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/zynq_bd.png"
-     alt="Zynq block diagram">
+     alt="Block Diagram in Vivado">
 
 </body>
 </html>
