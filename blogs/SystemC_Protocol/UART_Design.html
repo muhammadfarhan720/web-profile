@@ -12,13 +12,15 @@ title: "Example : PPA optimization on FPGA  "
 
   <div id="blog-content">
   
-<h3>What is PPA optimization ? </h3>
-<p>RTL designers who write HDL code to design a circuit do not only have to fulfill the functional verification, the designer needs to meet the specifications given by vendors of 3 respective metrics : Performance, Power and Area (PPA) !</p>
-<ul>
-  <li><strong>Performance</strong> - Maximum operating frequency capacity of the chip (i.e. DUT for FPGA) (This is the most critical spec)</li>
-  <li><strong>Power</strong> - Consume minimal dynamic and static power</li>
-  <li><strong>Area</strong> - Take the least area on the given chip area (i.e in terms of FPGA: least amount of Logic and memory resources such as LUT, FF, etc)</li>
-</ul>
+## 1. Introduction
+
+The Universal Asynchronous Receiver/Transmitter (UART) is a simple yet powerful serial communication protocol that has been around for decades. It enables point-to-point data transfer using just two main lines,  transmit (TX) and receive (RX). It is  asynchronous, meaning that it doesn’t have a shared clock signal. It still continues to be widely used in microcontrollers, FPGAs, industrial equipment, despite the emergence of faster and more complex protocols like SPI, or I2C, because of its simplicity, low hardware requirements, and proven reliability.
+
+![UART communication diagram](/images/device1_device2.png)
+
+*Photo from [here](https://vanhunteradams.com/Protocols/UART/UART.html)*
+
+    
 
     <h2>In this blog we show an example of PPA optimization of RTL design on FPGA</h2>
     <p>Let us take an RTL design of an unsupervised learning engine that implements spike timing dependent plasticity (STDP) training from a brain-inspired neuromorphic AI accelerator designed by <a href="https://dl.acm.org/doi/10.1145/3313866" target="_blank">Liu et al. (2019)</a>. The details of the STDP learning rule and how the learning engine design functions is explained in this blog  <a href="https://aaryanvdhawan.github.io/posts/2025/07/optimizing-an-stdp-learning-engine-for-fpgas/" target="_blank"> STDP learning engine</a>. </p>
