@@ -113,7 +113,9 @@ While UART is straightforward, certain issues can degrade communication quality.
   \]
 </p>
 
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/top_module.png" alt="Top Module diagram">
+    <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/top_module.png" 
+     alt="Top Module diagram" 
+     style="max-width:100%; display:block; margin:20px auto;">
 
 <p>The top module computes this once and hands it to both blocks so TX and RX share the exact bit period. The clock comes straight from the board clock (held as a single-ended net in this version), and reset is active-low. On the serial side, the top module listens on the RX pin and immediately inverts the incoming byte and feeds it to the transmitter module.</p>
 
@@ -138,7 +140,9 @@ While UART is straightforward, certain issues can degrade communication quality.
 
 <p>The simulation builds an environment around the top. A 100 MHz clock is generated; clocks‑per‑bit is derived from the chosen baud (e.g., 115200 → ~868 cycles/bit); reset is asserted and released cleanly. A byte‑framing task drives the RX line similar to standard UART implementations: idle high, a low start bit for one bit period, eight data bits LSB‑first, then a high stop bit. After each send, the testbench waits long enough for the TX path to finish and then checks results with a tiny scoreboard that compares the observed transmitted data to the expected transformed value (i.e., the bitwise inverse of what was sent). Counters track pass/fail, and the simulation prints a summary at the end. Because the receiver samples mid‑bit and uses a two‑flip‑flop synchronizer on the asynchronous RX input, the RX behaves robustly in sim: edges are recognized, data bits land in the right positions, and the one‑cycle data‑valid pulse cleanly triggers the TX.</p>
 
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/sim_waveform.png" alt="Simulation waveform">
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/sim_waveform.png" 
+     alt="Simulation waveform" 
+     style="max-width:100%; display:block; margin:20px auto;">
 
 <p>In the waveform above, the rx_serial line shows the UART receiver sampling two bytes back-to-back: first 0xA5 (1010 0101 in binary, sent LSB-first) and then 0x55 (0101 0101). You can clearly see the start bit (0), followed by the data bits, and finally the stop bit (1). The tx_serial line echoes the processed data. Since the design inverts each received byte (tx_byte = ~rx_byte), the transmitted patterns correspond to 0x5A and 0xAA instead.</p>
 
@@ -153,7 +157,10 @@ On the PC side, a serial terminal program (like PuTTY/Tera Term) can be used to 
 <h3>B) On-chip CPU driven self‑test</h3>
 <p>The Zynq board has two main parts: a CPU, called the Processing System (PS), and the FPGA fabric, called the Programmable Logic (PL). This means the CPU can directly talk to our custom RTL design in the PL. One way to connect them is through EMIO (Extended Multiplexed I/O) which are basically a set of internal wires that route signals from the CPU into the FPGA fabric without going out through pins.</p>
 
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/zynq_bd.png" alt="Block Diagram in Vivado">
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/zynq_bd.png" 
+     alt="Block Diagram in Vivado" 
+     style="max-width:100%; display:block; margin:20px auto;">
 
 <p>In our case, we used a UART peripheral on the CPU and route its TX and RX through EMIO into the PL, where they connect to the UART RTL. A bare-metal program running on the CPU then sends bytes into the PL’s RX and reads the results back from the PL’s TX. So, the CPU becomes a built-in testbench, making it easy to verify the design entirely on-board without any external adapters.<br>
 Further details of this approach will be covered in the next post.</p>
