@@ -1,5 +1,5 @@
 ---
-title: "RISC-V Single-Cycle CPU Tapeout on Sky130 PDK"
+title: "RISC-V CPU Tapeout on Sky130 PDK"
 description: "Full RTL-to-GDS tapeout of a single-cycle RV32I RISC-V CPU on SkyWater 130nm open PDK using Cadence Genus, Innovus, and Tempus. Achieved timing closure across FF/SS/TT corners with comprehensive formal verification using JasperGold."
 github: "https://github.com/aaryanvdhawan/RISC-V_CPU_RTL_Design_Verification" 
 layout: single
