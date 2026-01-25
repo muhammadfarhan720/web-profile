@@ -28,4 +28,4 @@ order: 1
 **Additional Achievements**:
 - Instruction and data memories synthesized as flop arrays (no hard macros)
 - Critical path dominated by PC → instruction fetch/decode → ALU (32-bit adder chain) → write-back
-- Full GDS generated and ready for tapeout submission (e.g., via Tiny Tapeout, Google MPW shuttle, or academic shuttle)
+- Full GDS generated and ready for tapeout submission 
