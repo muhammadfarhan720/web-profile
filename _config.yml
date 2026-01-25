@@ -24,7 +24,7 @@ author:
   avatar           : "github_photo_2.jpg"
   name             : "Muhammad Farhan Azmine"
   pronouns         : #"he/him"  
-  bio              : "I am a third year PhD student with Computer Engineering major at Virginia Tech. I have more than 5 years of experience in developing complex RTL designs, IP subsystem integration and Verification. My research includes developing energy efficient hardware friendly machine learning algorithms using Python/C++ and designing/optimizing digital chips that can deploy them for Edge AI applications"
+  bio              : "I am a third year PhD student with Computer Engineering major at Virginia Tech. I have more than 5 years of experience in developing complex RTL designs, IP subsystem integration and Verification. My research includes developing energy efficient hardware friendly machine learning algorithms using Python/C++ and designing/optimizing digital chips using SystemVerilog/VHDL that can deploy them for Edge AI applications"
   location         : "Alexandria, VA, USA"
   employer         : "Virginia Tech"
   uri              : # URL
