@@ -32,138 +32,257 @@ The Universal Asynchronous Receiver/Transmitter (UART) is a simple yet powerful 
 The image above shows a UART communication setup between two devices. In a real-world scenario, Device 1 could be a PC, microcontroller or another FPGA sending data to Device 2, which processes the data and sends a response back.
 In this project, we are only designing UART logic for Device 2. Device 1 will not be implemented on hardware, instead its behavior will be generated from a testbench in simulation. The testbench will send bytes of data to Device 2. Device 2 will accept the data and send back the processed data to the testbench.
 In this post, we will see how the UART logic can be designed using a simple finite-state machine (FSM). The data transmission follows a well-defined sequence: waiting in the idle state, detecting a start bit, shifting in or out data bits, verifying the stop bit, and returning to idle. By defining each state and its transitions clearly, an FSM ensures predictable timing, clean phase changes, and the ability to handle error conditions like invalid start bits or framing errors in a structured manner.
-</p>
+</p><h2>Part 2: PS–PL Integration (Vivado Setup)</h2>
 
 <p>
-This post will begin by explaining UART signaling and timing fundamentals. It will then detail the design of both transmit (TX) and receive (RX) logic using FSMs, including the step-by-step state diagrams. Finally, it will show how to integrate these into a top-level module, test the design in simulation, and discuss considerations for implementing it on hardware.
+In the previous post, we designed a UART using FSMs, verified it in simulation, and looked at two ways to test it on hardware - an external USB–UART dongle and the PS–PL approach. While the external dongle method works, Zynq boards give us a more powerful option: using the Processing System (PS) as a built-in testbench for our RTL logic in the Programmable Logic (PL). The PS–PL integration is useful because:
 </p>
 
-<h2>2. Background: UART Essentials</h2>
-
-<p>
-UART communication is asynchronous, meaning the device 1 transmitter and the device 2 receiver do not share a common clock signal. Each of them operates on their separate clock and both ends agree beforehand on a baud rate which is the number of bits sent per second. Data is sent in a frame that starts with a start bit (logic low), followed by a fixed number of data bits (usually 8 and LSB first), an optional parity bit for error checking, and a stop bit (logic high) to signal the end of the frame. This structure allows UART to transfer data reliably over just two wires.
-</p>
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/frame_structure.png"
-     alt="Frame Structure diagram"
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p>
-<em>Photo from
-<a href="https://www.electronicwings.com/storage/PlatformSection/TopicContent/249/description/2_8051_Serial_Frame_Structure.png" target="_blank">here</a>
-</em>
-</p>
-
-<h3>Baud rate generation and clock-to-bit timing</h3>
-
-<p>
-The baud rate is simply the number of signal changes (symbols) transmitted per second. In UART, one symbol corresponds to one bit, so the baud rate directly equals the number of bits sent per second.
-Since UART does not send a clock signal, each side must generate its own timing internally. A baud rate generator in the hardware divides the system clock to produce a timing reference that matches the agreed baud rate.
-</p>
-
-<p style="text-align:center;">
-$$
-\text{Bit Period (seconds)} = \frac{1}{\text{baud rate}}
-$$
-</p>
-
-<p>
-For example, at 9600 baud, each bit period is ~104 µs long.
-<br>
-In RTL design, we work with Clock Cycles instead of time. To calculate the number of clock cycles in one bit period, we use the equation below:
-</p>
-
-<p style="text-align:center;">
-$$
-\text{Clock cycles per bit} = \frac{\text{System clock frequency}}{\text{baud rate}}
-$$
-</p>
-
-<p>
-For example, with a 100 MHz system clock and 115200 baud, the clock cycles per bit are 868. This means the UART logic must hold each bit steady for 868 clock cycles before moving to the next one. On the receive side, sampling is done at the midpoint of this window.
-</p>
-
-
-<h3>Common pitfalls (sampling errors, metastability)</h3>
-
-<p>
-While UART is straightforward, certain issues can degrade communication quality. Sampling errors occur if the receiver samples too early or too late within a bit period, leading to incorrect data. Metastability can happen when an asynchronous signal is read too close to a clock edge, causing unpredictable logic levels. Designers typically use oversampling and synchronizer flip-flops to minimize these risks and ensure stable, reliable data capture.
-</p>
-
-
-<h2>3. Designing the RX (Receive) FSM</h2>
-
-<p>The purpose of the RX FSM is to reconstruct a byte of data from the serialized bits sent through the single RX line. The UART receiver watches the line for a falling edge that marks a start bit, then waits half a bit period to sample in the middle—where the signal is most stable. From there, it samples once per bit period to capture each data bit, least-significant first, rebuilding the byte one bit at a time. After the eighth bit, it expects a high stop bit to confirm a well-formed frame. To keep asynchronous input from glitching the logic, the design first passes the incoming line through a two-stage synchronizer before any decisions are made. When a complete, correctly timed frame is observed, the receiver raises a brief “data-valid” pulse and presents the assembled byte, then returns to idle to wait for the next start bit.</p>
-
-<h2>4. Designing the TX (Transmit) FSM</h2>
-
-<p>The purpose of the TX FSM is to serialize data so it can be sent bit-by-bit through the single TX line back to Device 1 (the testbench). The UART transmitter works by following a clear sequence of steps to send a byte of data. It starts in an idle state with the output line resting high, waiting for a signal to begin transmission. Historically, this idle-high convention comes from telegraph systems, where keeping the line high helped verify that the line was intact.</p>
-
-<p>Once data is ready, it first sends a start bit (a low signal) to mark the beginning of the frame. Next, it sends each bit of the data, starting from the least significant bit, holding each one steady for a precise period based on the chosen baud rate. For example, if we choose a baud rate of 192000, this means sending 192000 bits per second. To determine the number of clock cycles required to send one bit, we divide the system clock frequency by the baud rate. This enables designing a counter that counts up to that value before sending the next bit.</p>
-
-<p>After all the data bits are sent, it outputs a stop bit (a high signal) to signal the end of the frame. Finally, it returns to the idle state, ready to send the next byte. This step-by-step method ensures that every bit is sent with accurate timing, making the transmission reliable and easy to interpret on the receiving end.</p>
-
-<h2>5. Top-Level Integration</h2>
-
-<p>At the top level, the design stitches together a receiver and a transmitter around a single timing parameter: clock cycles per bit.</p>
-
-<p>
-  \[
-  \text{Clock cycles per bit} = \frac{\text{System clock frequency}}{\text{baud rate}}
-  \]
-</p>
-
-    <img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/top_module.png" 
-     alt="Top Module diagram" 
-     style="max-width:100%; display:block; margin:20px auto;">
-
-<p>The top module computes this once and hands it to both blocks so TX and RX share the exact bit period. The clock comes straight from the board clock (held as a single-ended net in this version), and reset is active-low. On the serial side, the top module listens on the RX pin and immediately inverts the incoming byte and feeds it to the transmitter module.</p>
-
-
-<h3>Instantiating TX and RX modules of device 2 in the top module</h3>
-
-<p>The receiver and transmitter are instantiated side‑by‑side and driven by the same clock. The RX asserts a one‑cycle data‑valid pulse when a full byte is captured; that pulse doubles as the TX “start” signal so transmission begins the moment a byte is ready. The RX’s output byte flows through a lightweight transform stage (bitwise inversion for the blog demo) into the TX’s input.</p>
-
-<h3>The loopback example for self‑test</h3>
-
-<p>To verify end‑to‑end behavior without extra hardware, the top module runs a closed‑loop self‑test: bytes arriving on RX are immediately transformed and re‑emitted on TX. For this demo, we use a simple bitwise NOT operation as the transformation, since it makes the output easy to predict and verify.</p>
-
-<p>For example:</p>
 <ul>
-  <li>send 0xA5, expect ~0xA5 = 0x5A on TX</li>
-  <li>send 0x55, expect 0xAA, and so on.</li>
+    <li>It removes the need for external adapters or cables.</li>
+    <li>The CPU can send data directly into the UART RTL and read back results.</li>
+    <li>We can write flexible bare-metal C programs for testing.</li>
+    <li>It allows us to debug more easily by printing logs from the PS while interacting with our PL design.</li>
 </ul>
 
-<p>This provides a quick way to confirm that the design is correctly detecting frames and sending them back with accurate timing.</p>
+<p>
+This flow is not only convenient for on-board testing but also reflects how real Zynq projects combine software and hardware.
+</p>
 
-<h2>6. Verification: Testbench & Simulation</h2>
+<p>
+In this post, we’ll walk through the steps needed to set up PS–PL integration in Vivado:
+</p>
 
-<p>The simulation builds an environment around the top. A 100 MHz clock is generated; clocks‑per‑bit is derived from the chosen baud (e.g., 115200 → ~868 cycles/bit); reset is asserted and released cleanly. A byte‑framing task drives the RX line similar to standard UART implementations: idle high, a low start bit for one bit period, eight data bits LSB‑first, then a high stop bit. After each send, the testbench waits long enough for the TX path to finish and then checks results with a tiny scoreboard that compares the observed transmitted data to the expected transformed value (i.e., the bitwise inverse of what was sent). Counters track pass/fail, and the simulation prints a summary at the end. Because the receiver samples mid‑bit and uses a two‑flip‑flop synchronizer on the asynchronous RX input, the RX behaves robustly in sim: edges are recognized, data bits land in the right positions, and the one‑cycle data‑valid pulse cleanly triggers the TX.</p>
+<hr>
 
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/sim_waveform.png" 
-     alt="Simulation waveform" 
+<h3>PS Configuration in Vivado</h3>
+
+<p>
+The first step is configuring the Zynq Processing System (PS) in Vivado. Inside the Zynq PS block, we can enable peripherals such as UART0 and UART1.
+</p>
+
+<ul>
+    <li><strong>MIO (Multiplexed I/O):</strong> maps a PS peripheral directly to physical package pins on the Zynq, e.g., to connect to a USB cable or external device.</li>
+    <li><strong>EMIO (Extended MIO):</strong> routes signals internally into the PL, so the custom RTL logic can use them.</li>
+</ul>
+
+<p>For our setup:</p>
+
+<ul>
+    <li>PS-UART1 is mapped via MIO so it can print to the console.</li>
+    <li>PS-UART0 is routed via EMIO into the PL, where it connects to our UART RTL.</li>
+</ul>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/Vivado_bd.png"
+     alt="Vivado block diagram showing PS-UART0 routed via EMIO into PL and PS-UART1 via MIO to console"
      style="max-width:100%; display:block; margin:20px auto;">
 
-<p>In the waveform above, the rx_serial line shows the UART receiver sampling two bytes back-to-back: first 0xA5 (1010 0101 in binary, sent LSB-first) and then 0x55 (0101 0101). You can clearly see the start bit (0), followed by the data bits, and finally the stop bit (1). The tx_serial line echoes the processed data. Since the design inverts each received byte (tx_byte = ~rx_byte), the transmitted patterns correspond to 0x5A and 0xAA instead.</p>
+<p><em>Vivado block diagram with PS UART0 → EMIO → PL and PS UART1 → MIO</em></p>
 
-<h2>7. On‑Board Testing & Validation</h2>
+<p>
+Once this block diagram is complete, we export the hardware from Vivado, generating an .xsa file for use in Vitis.
+</p>
 
-<p>When we move off the simulator and onto a board, there are two straightforward ways to validate the design:</p>
+<hr>
 
-<h3>A) External USB‑UART dongle</h3>
-<p>The simplest way to test the design on hardware is by connecting it to a PC through a USB-UART adapter. Most FPGA boards expose header pins (such as PMOD connectors) that can be mapped to our UART’s TX and RX signals. By assigning these signals in the constraints file, we can physically route the FPGA’s TX and RX pins to the USB-UART dongle.<br>
-On the PC side, a serial terminal program (like PuTTY/Tera Term) can be used to send and receive bytes. We set the terminal to the same UART settings as our design, that is, baud rate (e.g., 115200), 8 data bits, no parity, and 1 stop bit (8-N-1). Once connected, we can type a byte in the terminal and immediately see the board echo back the transformed value.</p>
+<h3>Overall Flow of PS–PL Integration</h3>
 
-<h3>B) On-chip CPU driven self‑test</h3>
-<p>The Zynq board has two main parts: a CPU, called the Processing System (PS), and the FPGA fabric, called the Programmable Logic (PL). This means the CPU can directly talk to our custom RTL design in the PL. One way to connect them is through EMIO (Extended Multiplexed I/O) which are basically a set of internal wires that route signals from the CPU into the FPGA fabric without going out through pins.</p>
-
-
-<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/zynq_bd.png" 
-     alt="Block Diagram in Vivado" 
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/flow1.png"
+     alt="Overall PS–PL loop: PS app → UART0 (EMIO) → RX FSM → Inverter → TX FSM → back to PS; UART1 (MIO) used for console logs"
      style="max-width:100%; display:block; margin:20px auto;">
 
-<p>In our case, we used a UART peripheral on the CPU and route its TX and RX through EMIO into the PL, where they connect to the UART RTL. A bare-metal program running on the CPU then sends bytes into the PL’s RX and reads the results back from the PL’s TX. So, the CPU becomes a built-in testbench, making it easy to verify the design entirely on-board without any external adapters.<br>
-Further details of this approach will be covered in the next post.</p>
+<p>The setup works as shown in the diagram above.</p>
+
+<ul>
+    <li>The PS Application running on the Zynq CPU uses PS-UART0, which is routed through EMIO into the PL fabric.</li>
+    <li>Inside the PL, the data first passes through the Receiver FSM, which reconstructs bytes from the serial stream.</li>
+    <li>The byte is then passed through a simple Inverter module (our demo transformation logic).</li>
+    <li>The transformed data is serialized again by the Transmitter FSM and sent back through PS-UART0.</li>
+    <li>Finally, the PS Application receives this processed data, where it can be checked and logged to the console.</li>
+</ul>
+
+<p>
+Meanwhile, PS-UART1 (MIO) is used separately for console I/O, so all xil_printf() messages from the application are displayed on the PC terminal.
+</p>
+
+<p>
+This flow lets the PS act as a built-in testbench: it generates test data, sends it through the PL UART RTL, and verifies the returned results.
+</p>
+
+<hr>
+
+<h3>Building the block diagram in Vivado</h3>
+
+<p><strong>Step 1:</strong> Once the RTL design is ready and verified with a testbench, create a new Block Design from the Flow Navigator.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step1.png"
+     alt="Vivado IP Integrator: Create New Block Design screen"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 2:</strong> Add the Zynq Processing System to the Block Diagram.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step2.png"
+     alt="Vivado: Zynq Processing System block added to the diagram"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step3.png"
+     alt="Vivado: Zynq Processing System block added to the diagram"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 3:</strong> Select the Zynq PS block and enable UART0 and UART1 from the Peripheral I/O Pins section.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step4.png"
+     alt="Vivado: Zynq PS configuration—Peripheral I/O Pins view enabling UART0 and UART1"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 4:</strong> Ensure that UART0 is set to EMIO and UART1 is set to MIO.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step4_1.png"
+     alt="Vivado: Setting UART0 to EMIO and UART1 to MIO in Zynq PS"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 5:</strong> In the Design Sources window, right-click on your top module and add it to the Block Design.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step5.png"
+     alt="Vivado: Adding existing RTL top module (uart_top) to the Block Design"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 6:</strong> Add a Processor System Reset block to the design. This block generates properly synchronized reset signals for the logic in the PL, ensuring that all modules start in a known state when the system powers up or resets.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step6.png"
+     alt="Vivado: Adding Processor System Reset IP to the design"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 7:</strong> Connect the blocks together in the Block Design. Specifically:</p>
+
+<ul>
+    <li>Connect the FCLK_CLK0 output from the Zynq PS to the clk input of your uart_top module and the Processor System Reset block.</li>
+    <li>Connect the peripheral_aresetn output from the Processor System Reset block to the reset input of your uart_top module.</li>
+    <li>Link the UART0 EMIO signals from the PS to the RX/TX ports of your uart_top.</li>
+</ul>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step7.png"
+     alt="Vivado: Connecting FCLK_CLK0, peripheral_aresetn, and UART0 EMIO to uart_top RX/TX"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 8:</strong> Validate the design to ensure that all connections are correct and that there are no errors or missing links in the block diagram.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step8.png"
+     alt="Vivado: Validate Design—no errors/missing connections"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 9:</strong> In the Sources window, right-click on the block design and select Create HDL Wrapper to generate a top-level file for synthesis and implementation.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step9.png"
+     alt="Vivado: Create HDL Wrapper dialog for the block design"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+The HDL wrapper is a top-level entity required by design tools. It is necessary because the block design cannot be synthesized directly.
+</p>
+
+<p><strong>Step 10:</strong> Let Vivado manage wrapper and auto-update and click OK.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step10.png"
+     alt="Vivado: design_wrapper.v generated and set as Top in Sources"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+This will create a wrapper.v file and set it as the top module automatically.
+</p>
+
+<p><strong>Step 11:</strong> The file design_wrapper.v is generated. Vivado usually sets this as the top automatically, but if not, you can right-click on it in the Sources window and select Set as Top manually.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step11.png"
+     alt="Vivado: Generate Block Design output products dialog/options"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 12:</strong> Generating the Block Design</p>
+
+<ul>
+    <li>In the Flow Navigator window, click Generate Block Design under IP Integrator.</li>
+    <li>Set the synthesis option to Global.</li>
+    <li>Click Generate to build the required output products.</li>
+</ul>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step12.png"
+     alt="Vivado: Generate output products"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+At this stage, Vivado automatically generates all the necessary files for the design. We don’t need to manually create constraints for the Zynq Processing System. Vivado generates an XDC file for it as part of this step.
+</p>
+
+<p><em>Reference: AMD Zynq Embedded Design Tutorial</em></p>
+
+<p>-Once the process is complete, click OK.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step12_2.png"
+     alt="Vivado: Generate output products"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 13:</strong> Run Synthesis and Implementation in Vivado, and verify that both processes complete successfully without errors.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step13.png"
+     alt="Vivado: Synthesis and Implementation completed successfully"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 14:</strong> From the Flow Navigator, click Generate Bitstream and confirm that the process completes successfully without errors.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step14.png"
+     alt="Vivado: Generate Bitstream completed successfully"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p><strong>Step 15:</strong> Exporting the hardware.</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step15.png"
+     alt="Vivado: Export Hardware dialog with Include Bitstream checked"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<p>
+In the dialog box, make sure to check <em>Include Bitstream</em> so the hardware description contains both the design and the generated bitstream.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step15_2.png"
+     alt="Output: .xsa file generated for Vitis handoff"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<ul>
+    <li>Choose an output location (by default, Vivado will place it in your project’s folder).</li>
+    <li>Click Finish to generate the .xsa file.</li>
+</ul>
+
+<p>
+This .xsa (Xilinx Support Archive) file is what you’ll import into Vitis to create your software platform and bare-metal application.
+</p>
+
+<img src="https://raw.githubusercontent.com/muhammadfarhan720/web-profile/master/images/step15_3.png"
+     alt="Output: .xsa file generated for Vitis handoff"
+     style="max-width:100%; display:block; margin:20px auto;">
+
+<hr>
+
+<h3>Code &amp; Resources</h3>
+
+<p>
+All source files, Vivado project (.xpr), and testbench code used in this post are available here:
+</p>
+
+<p>
+<a href="https://github.com/shreyadatir30/UART-Communication-System" target="_blank">
+UART-Communication-System GitHub Repository
+</a>
+</p>
+
+<p>
+You can download the full Vivado project as a zip and open it directly in Vivado
+(<code>File → Open Project</code> → select <code>.xpr</code>).
+</p>
+
+<p>
+In the next part, we’ll take this exported hardware into Vitis, set up the BSP, and build a bare-metal application to test the UART design.
+</p>
+
 
 
 
