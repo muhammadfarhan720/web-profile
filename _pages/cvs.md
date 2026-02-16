@@ -17,25 +17,25 @@ author_profile: true
   <div style="flex: 1; min-width: 300px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
     <h3>ASIC Design CV</h3>
     <p>CV focused on ASIC design experience and expertise.</p>
-    <a href="/files/ASIC_Farhan_2026.pdf" target="_blank" class="btn btn--primary">View ASIC Design CV</a>
+    <a href="https://muhammadfarhan720.github.io/web-profile/files/ASIC_Farhan_2026.pdf" target="_blank" class="btn btn--primary">View ASIC Design CV</a>
   </div>
 
   <div style="flex: 1; min-width: 300px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
     <h3>ASIC Design Verification CV</h3>
     <p>CV focused on ASIC design verification and validation expertise.</p>
-    <a href="/files/DV_ASIC_2026.pdf" target="_blank" class="btn btn--primary">View Verification CV</a>
+    <a href="https://muhammadfarhan720.github.io/web-profile/files/DV_ASIC_2026.pdf" target="_blank" class="btn btn--primary">View Verification CV</a>
   </div>
 
   <div style="flex: 1; min-width: 300px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
     <h3>ASIC CPU Design CV</h3>
     <p>CV focused on CPU design and architectural expertise.</p>
-    <a href="/files/ASIC_CPU_2026.pdf" target="_blank" class="btn btn--primary">View CPU Design CV</a>
+    <a href="https://muhammadfarhan720.github.io/web-profile/files/ASIC_CPU_2026.pdf" target="_blank" class="btn btn--primary">View CPU Design CV</a>
   </div>
 
   <div style="flex: 1; min-width: 300px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
     <h3>FPGA Design CV</h3>
     <p>CV focused on FPGA design and implementation expertise.</p>
-    <a href="/files/Resume_Muhammad_Farhan_2025.pdf" target="_blank" class="btn btn--primary">View FPGA Design CV</a>
+    <a href="https://muhammadfarhan720.github.io/web-profile/files/Resume_Muhammad_Farhan_2025.pdf" target="_blank" class="btn btn--primary">View FPGA Design CV</a>
   </div>
 
 </div>
