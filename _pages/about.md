@@ -54,7 +54,7 @@ redirect_from:
 
 
 
-🎓 I'm a Third-year PhD student at Virginia Tech.
+🎓 I'm a Fourth-year PhD student at Virginia Tech.
 
 ⚡ My research focuses on hardware-efficient ML algorithm design and RTL development, optimization, and verification for energy-efficient neuromorphic accelerators targeting FPGA/ASIC implementations.
 
