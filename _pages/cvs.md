@@ -38,4 +38,6 @@ author_profile: true
     <a href="https://muhammadfarhan720.github.io/web-profile/files/Resume_Muhammad_Farhan_2025.pdf" target="_blank" class="btn btn--primary">View FPGA Design CV</a>
   </div>
 
+
+
 </div>
