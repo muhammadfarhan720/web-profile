@@ -25,7 +25,7 @@ author_profile: true
   <div style="flex: 1; min-width: 300px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
     <h3>FPGA Design CV</h3>
     <p>CV focused on FPGA design and implementation expertise.</p>
-    <a href="https://muhammadfarhan720.github.io/web-profile/files/Resume_Muhammad_Farhan_2025.pdf" target="_blank" class="btn btn--primary">View FPGA Design CV</a>
+    <a href="https://muhammadfarhan720.github.io/web-profile/files/Resume_Muhammad_Farhan_FPGA.pdf" target="_blank" class="btn btn--primary">View FPGA Design CV</a>
   </div>
 
   <div style="flex: 1; min-width: 300px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
@@ -38,6 +38,13 @@ author_profile: true
     <h3>ASIC CPU Design CV</h3>
     <p>CV focused on CPU design and architectural expertise.</p>
     <a href="https://muhammadfarhan720.github.io/web-profile/files/ASIC_CPU_2026.pdf" target="_blank" class="btn btn--primary">View CPU Design CV</a>
+  </div>
+
+  
+  <div style="flex: 1; min-width: 300px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+    <h3>AI/ML Chip/Accelerator Design</h3>
+    <p>CV focused on AI/ML Inference Chip or On-chip learning</p>
+    <a href="https://muhammadfarhan720.github.io/web-profile/files/CV_Muhammad_Farhan_2026_AI_Chip.pdf" target="_blank" class="btn btn--primary">View AI/ML CV</a>
   </div>
 
   <div style="flex: 1; min-width: 300px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
