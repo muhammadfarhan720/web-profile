@@ -43,7 +43,7 @@ author_profile: true
   
   <div style="flex: 1; min-width: 300px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
     <h3>AI/ML Chip/Accelerator Design</h3>
-    <p>CV focused on AI/ML Inference Chip or On-chip learning</p>
+    <p>CV focused on AI/ML Hardware Accelerator (Inference Chip or On-chip learning) </p>
     <a href="https://muhammadfarhan720.github.io/web-profile/files/CV_Muhammad_Farhan_2026_AI_Chip.pdf" target="_blank" class="btn btn--primary">View AI/ML CV</a>
   </div>
 
